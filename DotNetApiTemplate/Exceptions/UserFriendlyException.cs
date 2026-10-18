@@ -6,6 +6,7 @@ public class UserFriendlyException(ErrorMessages error)
 
 public enum ErrorMessages
 {
+    #region ACCOUNT
     UserNotFound = 1,
     UserAlreadyExists = 2,
     EmailAlreadyExists = 3,
@@ -34,11 +35,23 @@ public enum ErrorMessages
     InvalidAccessToken = 23,
     AccessTokenExpired = 24,
 
+    #endregion
     Unauthorized = 25,
     Forbidden = 26,
     InvalidRequest = 27,
     MissingRequiredFields = 28,
     InvalidInput = 29,
     ResourceNotFound = 30,
-    OperationFailed = 31
+    OperationFailed = 31,
+
+
+    #region BRANCH
+
+    BranchAlreadyExists = 32,
+    InvalidBranchName = 33,
+    BranchNotFound = 34,
+    BranchCodeGenerationFailed = 35,
+    BranchCodeIsRequired = 36,
+
+    #endregion
 }

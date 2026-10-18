@@ -1,5 +1,4 @@
-﻿
-using DotNetApiTemplate.Models.Data;
+﻿using DotNetApiTemplate.Models.Data;
 using Microsoft.AspNetCore.Identity;
 using SupermarketERP.Constants;
 
@@ -47,11 +46,19 @@ public static class EmployeeSeeder
                 {
                     UserName = employee.Email,
                     Email = employee.Email,
-                    EmailConfirmed = false
+                    EmailConfirmed = true
                 };
 
                 var result = await userManager.CreateAsync(
                     user, password);
+
+                EnsureSucceeded(result);
+            }
+            else if (!user.EmailConfirmed)
+            {
+                user.EmailConfirmed = true;
+
+                var result = await userManager.UpdateAsync(user);
 
                 EnsureSucceeded(result);
             }

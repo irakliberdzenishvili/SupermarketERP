@@ -3,6 +3,7 @@ using DotNetApiTemplate.Models;
 using DotNetApiTemplate.Models.Data;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using SupermarketERP.Models.Data;
 using System.Linq.Expressions;
 using System.Reflection.Emit;
 
@@ -17,6 +18,7 @@ public class ApplicationDbContext : IdentityDbContext<User>
     }
 
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<Branch> Branches => Set<Branch>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

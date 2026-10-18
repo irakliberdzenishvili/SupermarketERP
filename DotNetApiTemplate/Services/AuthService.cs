@@ -21,7 +21,6 @@ public class AuthService : IAuthService
 {
     private readonly UserManager<User> _userManager;
     private readonly ApplicationDbContext _db;
-    private readonly IJwtService _jwtService;
     private readonly IEmailService _emailService;
     private readonly IConfiguration _configuration;
     private readonly SignInManager<User> _signInManager;
@@ -30,7 +29,6 @@ public class AuthService : IAuthService
     public AuthService(
         UserManager<User> userManager,
         ApplicationDbContext db,
-        IJwtService jwtService,
         IEmailService emailService,
         IConfiguration configuration,
         SignInManager<User> signInManager,
@@ -38,7 +36,6 @@ public class AuthService : IAuthService
     {
         _userManager = userManager;
         _db = db;
-        _jwtService = jwtService;
         _emailService = emailService;
         _configuration = configuration;
         _signInManager = signInManager;
