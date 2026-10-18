@@ -36,6 +36,9 @@ appsettings.Development.local.json
 appsettings.Local.json
 appsettings.*.local.json
 appsettings.json
+**/appsettings.json
+**/appsettings.Development.json
+**/appsettings.Production.json
 secrets.json
 *.pfx
 *.p12
