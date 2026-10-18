@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using SupermarketERP.DB.Seed;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -152,6 +153,17 @@ builder.Services.AddSwaggerGen(options =>
 var app = builder.Build();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+
+    await RoleSeeder.SeedAsync(scope.ServiceProvider);
+
+    await EmployeeSeeder.SeedAsync(
+        scope.ServiceProvider,
+        app.Configuration);
+}
 
 if (app.Environment.IsDevelopment())
 {
