@@ -1,0 +1,85 @@
+
+# ==========================================
+# .NET Build Outputs
+# ==========================================
+**/bin/
+**/obj/
+**/out/
+**/publish/
+artifacts/
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# ==========================================
+# Visual Studio / Rider / VS Code
+# ==========================================
+.vs/
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+_ReSharper*/
+*.DotSettings.user
+
+# ==========================================
+# Local Configuration & Secrets
+# ==========================================
+.env
+.env.*
+!.env.example
+appsettings.Development.local.json
+appsettings.Local.json
+appsettings.*.local.json
+appsettings.json
+secrets.json
+*.pfx
+*.p12
+*.pem
+*.key
+*.snk
+*.crt
+
+# ==========================================
+# Local Databases
+# ==========================================
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+*.mdf
+*.ldf
+
+# ==========================================
+# Logs & Temporary Files
+# ==========================================
+logs/
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+*.orig
+
+# ==========================================
+# OS Files
+# ==========================================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ==========================================
+# Docker Local Overrides
+# ==========================================
+docker-compose.override.yml
+compose.override.yaml
+
+# ==========================================
+# Node (if tooling is added later)
+# ==========================================
+node_modules/
