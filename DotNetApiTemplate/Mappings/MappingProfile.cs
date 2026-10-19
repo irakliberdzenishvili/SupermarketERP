@@ -16,7 +16,9 @@ namespace DotNetApiTemplate.Mappings
 
             #region BRANCHES
 
-            CreateMap<Branch, BranchResponse>();
+            CreateMap<Branch, BranchResponse>()
+    .ForMember(dest => dest.IsManager,
+        opt => opt.Ignore());
             CreateMap<CreateBranchRequest, Branch>();
 
             CreateMap<UpdateBranchRequest, Branch>()

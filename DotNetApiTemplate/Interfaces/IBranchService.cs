@@ -20,5 +20,7 @@ namespace SupermarketERP.Interfaces
 
         Task<ApiResponse<BranchResponse>> AssignBranchManager(Guid branchId, AssignBranchManagerRequest request);
 
+        Task<ApiResponse<BranchResponse>> ChangeBranchStatus(Guid branchId, ActivateBranchRequest request);
+
     }
 }

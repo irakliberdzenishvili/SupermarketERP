@@ -1,4 +1,5 @@
-﻿using DotNetApiTemplate.Models.Data;
+﻿
+using DotNetApiTemplate.Models.Data;
 using Microsoft.AspNetCore.Identity;
 using SupermarketERP.Constants;
 
@@ -37,52 +38,41 @@ public static class EmployeeSeeder
                     "Invalid seed employee configuration.");
             }
 
-            var user = await userManager.FindByEmailAsync(
-                employee.Email);
+            var existingUser =
+                await userManager.FindByEmailAsync(employee.Email);
 
-            if (user is null)
+            // Never change existing employees' roles.
+            if (existingUser != null)
+                continue;
+
+            var user = new User
             {
-                user = new User
-                {
-                    UserName = employee.Email,
-                    Email = employee.Email,
-                    EmailConfirmed = true
-                };
+                UserName = employee.Email,
+                Email = employee.Email,
+                EmailConfirmed = true
+            };
 
-                var result = await userManager.CreateAsync(
-                    user, password);
+            var createResult =
+                await userManager.CreateAsync(user, password);
 
-                EnsureSucceeded(result);
-            }
-            else if (!user.EmailConfirmed)
-            {
-                user.EmailConfirmed = true;
+            EnsureSucceeded(createResult);
 
-                var result = await userManager.UpdateAsync(user);
-
-                EnsureSucceeded(result);
-            }
-
-            if (!await userManager.IsInRoleAsync(
-                user, employee.Role))
-            {
-                var result = await userManager.AddToRoleAsync(
+            var roleResult =
+                await userManager.AddToRoleAsync(
                     user, employee.Role);
 
-                EnsureSucceeded(result);
-            }
+            EnsureSucceeded(roleResult);
         }
     }
 
-    private static void EnsureSucceeded(
-        IdentityResult result)
+    private static void EnsureSucceeded(IdentityResult result)
     {
         if (result.Succeeded)
             return;
 
         throw new InvalidOperationException(
             string.Join("; ",
-                result.Errors.Select(x => x.Description)));
+                result.Errors.Select(e => e.Description)));
     }
 
     private sealed class SeedEmployee

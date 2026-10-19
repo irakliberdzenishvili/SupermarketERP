@@ -1,5 +1,6 @@
 ﻿
 using System.Security.Claims;
+using DotNetApiTemplate.Helpers;
 using DotNetApiTemplate.Interfaces;
 using DotNetApiTemplate.Models.Request.Auth;
 using DotNetApiTemplate.Models.Response;
@@ -17,10 +18,12 @@ namespace DotNetApiTemplate.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
+    private readonly AuthHelper _authHelper;
 
-    public AuthController(IAuthService authService)
+    public AuthController(IAuthService authService, AuthHelper authHelper)
     {
         _authService = authService;
+        _authHelper = authHelper;
     }
 
     [HttpPost("register")]
@@ -171,28 +174,22 @@ public class AuthController : ControllerBase
             Message = "Logged out successfully."
         };
     }
-
     [Authorize]
     [HttpGet("me")]
     public ApiResponse<object> Me()
     {
-        var userId = User.FindFirstValue(
-            ClaimTypes.NameIdentifier);
-
-        var email = User.FindFirstValue(
-            ClaimTypes.Email);
-
-        var username = User.FindFirstValue(
-            ClaimTypes.Name);
-
+        var userId = _authHelper.UserId;
+        var username = _authHelper.UserName;
+        var userRole = _authHelper.UserRole;
+        
         return new ApiResponse<object>(
             true,
             "User retrieved successfully.",
             new
             {
                 Id = userId,
-                Email = email,
-                Username = username
+                Username = username,
+                Role = userRole
             });
     }
 }
