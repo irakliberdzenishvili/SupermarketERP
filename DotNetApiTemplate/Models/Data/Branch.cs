@@ -1,6 +1,7 @@
 ﻿namespace SupermarketERP.Models.Data;
 
 using DotNetApiTemplate.Interfaces;
+using DotNetApiTemplate.Models.Data;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -43,5 +44,9 @@ public class Branch : ISoftDeletable
 
     public DateTime? UpdatedAt { get; set; }
     public bool IsDeleted { get; set; } = false;
+
+    public User? BranchManager { get; set; }
+
+    public string? BranchManagerId { get; set; }
 }
 

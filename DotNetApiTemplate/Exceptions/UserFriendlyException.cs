@@ -43,15 +43,15 @@ public enum ErrorMessages
     InvalidInput = 29,
     ResourceNotFound = 30,
     OperationFailed = 31,
-
-
-    #region BRANCH
-
     BranchAlreadyExists = 32,
     InvalidBranchName = 33,
     BranchNotFound = 34,
     BranchCodeGenerationFailed = 35,
     BranchCodeIsRequired = 36,
+    UserIsNotBranchManager = 37,
+    ManagerAlreadyAssigned = 38,
+    FailedToAssignRole = 39,
+    FailedToRemoveRole = 40
 
-    #endregion
+
 }

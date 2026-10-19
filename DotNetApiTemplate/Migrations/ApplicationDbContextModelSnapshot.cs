@@ -271,6 +271,9 @@ namespace DotNetApiTemplate.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
 
+                    b.Property<string>("BranchManagerId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("City")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -307,6 +310,8 @@ namespace DotNetApiTemplate.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BranchManagerId");
 
                     b.HasIndex("Code")
                         .IsUnique();
@@ -374,6 +379,15 @@ namespace DotNetApiTemplate.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("SupermarketERP.Models.Data.Branch", b =>
+                {
+                    b.HasOne("DotNetApiTemplate.Models.Data.User", "BranchManager")
+                        .WithMany()
+                        .HasForeignKey("BranchManagerId");
+
+                    b.Navigation("BranchManager");
                 });
 #pragma warning restore 612, 618
         }

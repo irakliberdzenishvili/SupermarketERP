@@ -57,6 +57,21 @@ namespace SupermarketERP.Controllers
             return branch;
         }
 
+        [HttpPatch("{id:guid}")]
+        [Authorize(Roles = $"{Roles.Admin},{Roles.BranchManager}")]
+        public async Task<ApiResponse<BranchResponse>> UpdateBranch([FromRoute] Guid id, UpdateBranchRequest request)
+        {
+            var branch = await branchService.UpdateBranch(id, request);
+            return branch;
+        }
+
+        [HttpPost("{branchId:guid}/manager")]
+        [Authorize(Roles = Roles.Admin)]
+        public async Task<ApiResponse<BranchResponse>> AssignManager([FromRoute] Guid branchId, AssignBranchManagerRequest request)
+        {
+           var result =  await branchService.AssignBranchManager(branchId,request);
+            return result;
+        }
 
     }
 }

@@ -19,6 +19,14 @@ namespace DotNetApiTemplate.Mappings
             CreateMap<Branch, BranchResponse>();
             CreateMap<CreateBranchRequest, Branch>();
 
+            CreateMap<UpdateBranchRequest, Branch>()
+    .ForMember(dest => dest.Id, opt => opt.Ignore())
+    .ForMember(dest => dest.Code, opt => opt.Ignore())
+    .ForMember(dest => dest.BranchManagerId, opt => opt.Ignore())
+    .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+    .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
+    .ForMember(dest => dest.IsDeleted, opt => opt.Ignore());
+
             #endregion
         }
     }
