@@ -1,67 +1,86 @@
-﻿
-using DotNetApiTemplate.Interfaces;
+﻿using DotNetApiTemplate.Interfaces;
 using DotNetApiTemplate.Models;
+using DotNetApiTemplate.Models.Data;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using SupermarketERP.Models.Data;
 using SupermarketERP.Models.Data.Branch;
 using System.Linq.Expressions;
+using System.Reflection.Emit;
 
-protected override void OnModelCreating(ModelBuilder builder)
+namespace DotNetApiTemplate.DB;
+
+public class ApplicationDbContext : IdentityDbContext<User>
 {
-    base.OnModelCreating(builder);
-
-    // Global soft-delete filter
-    foreach (var entityType in builder.Model.GetEntityTypes())
+    public ApplicationDbContext(
+        DbContextOptions<ApplicationDbContext> options)
+        : base(options)
     {
-        if (!typeof(ISoftDeletable)
-            .IsAssignableFrom(entityType.ClrType))
-            continue;
-
-        var parameter = Expression.Parameter(
-            entityType.ClrType, "e");
-
-        var prop = Expression.Property(
-            parameter,
-            nameof(ISoftDeletable.IsDeleted));
-
-        var compare = Expression.Equal(
-            prop,
-            Expression.Constant(false));
-
-        var lambda = Expression.Lambda(compare, parameter);
-
-        builder.Entity(entityType.ClrType)
-            .HasQueryFilter(lambda);
     }
 
-    // Refresh tokens
-    builder.Entity<RefreshToken>()
-        .HasIndex(x => x.TokenHash)
-        .IsUnique();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<Branch> Branches => Set<Branch>();
+    public DbSet<Employee> Employees => Set<Employee>();
 
-    builder.Entity<RefreshToken>()
-        .HasOne(x => x.User)
-        .WithMany()
-        .HasForeignKey(x => x.UserId)
-        .OnDelete(DeleteBehavior.Cascade);
 
-    // Branch configuration
-    builder.Entity<Branch>(entity =>
+    protected override void OnModelCreating(ModelBuilder builder)
     {
-        entity.HasIndex(b => b.BranchManagerId)
-            .IsUnique()
-            .HasFilter("[BranchManagerId] IS NOT NULL");
+        base.OnModelCreating(builder);
 
-        entity.HasOne(b => b.BranchManager)
+        // Global soft-delete filter
+        foreach (var entityType in builder.Model.GetEntityTypes())
+        {
+            if (!typeof(ISoftDeletable)
+                .IsAssignableFrom(entityType.ClrType))
+                continue;
+
+            var parameter = Expression.Parameter(
+                entityType.ClrType, "e");
+
+            var prop = Expression.Property(
+                parameter,
+                nameof(ISoftDeletable.IsDeleted));
+
+            var compare = Expression.Equal(
+                prop,
+                Expression.Constant(false));
+
+            var lambda = Expression.Lambda(compare, parameter);
+
+            builder.Entity(entityType.ClrType)
+                .HasQueryFilter(lambda);
+        }
+
+        // Refresh tokens
+        builder.Entity<RefreshToken>()
+            .HasIndex(x => x.TokenHash)
+            .IsUnique();
+
+        builder.Entity<RefreshToken>()
+            .HasOne(x => x.User)
             .WithMany()
-            .HasForeignKey(b => b.BranchManagerId)
-            .OnDelete(DeleteBehavior.Restrict)
-            .IsRequired(false);
-    });
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
-    // Employee -> Branch relationship
-    builder.Entity<Employee>()
-        .HasOne(e => e.Branch)
-        .WithMany(b => b.Employees)
-        .HasForeignKey(e => e.BranchId)
-        .OnDelete(DeleteBehavior.Restrict);
+        // Branch configuration
+        builder.Entity<Branch>(entity =>
+        {
+            entity.HasIndex(b => b.BranchManagerId)
+                .IsUnique()
+                .HasFilter("[BranchManagerId] IS NOT NULL");
+
+            entity.HasOne(b => b.BranchManager)
+                .WithMany()
+                .HasForeignKey(b => b.BranchManagerId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+        });
+
+        // Employee -> Branch relationship
+        builder.Entity<Employee>()
+            .HasOne(e => e.Branch)
+            .WithMany(b => b.Employees)
+            .HasForeignKey(e => e.BranchId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
 }
