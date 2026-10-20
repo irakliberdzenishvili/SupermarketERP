@@ -2,6 +2,7 @@
 using DotNetApiTemplate.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SupermarketERP.Models.Data.Branch;
 
@@ -43,8 +44,9 @@ public class Branch : ISoftDeletable
 
     public bool IsDeleted { get; set; } = false;
 
-    public string? BranchManagerId { get; set; }
+    public Guid? BranchManagerId { get; set; }
 
+    [ForeignKey(nameof(BranchManagerId))]
     public Employee? BranchManager { get; set; }
 
     public ICollection<Employee> Employees { get; set; }

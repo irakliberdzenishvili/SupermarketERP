@@ -26,68 +26,41 @@ public class BranchService(
     UserManager<User> userManager
 ) : IBranchService
 {
-    private string? CurrentUserId => authHelper.UserId;
-    private string CurrentUserRole => authHelper.UserRole;
-
-    private string GetRequiredUserId()
-    {
-        if (string.IsNullOrWhiteSpace(CurrentUserId))
-            throw new UserFriendlyException(
-                ErrorMessages.Unauthorized);
-
-        return CurrentUserId;
-    }
-
-    private void EnsureAdmin()
-    {
-        GetRequiredUserId();
-
-        if (CurrentUserRole != Roles.Admin)
-            throw new UserFriendlyException(
-                ErrorMessages.Forbidden);
-    }
-
-    private static void EnsureIdentitySucceeded(
-        IdentityResult result)
-    {
-        if (result.Succeeded)
-            return;
-
-        throw new InvalidOperationException(
-            string.Join("; ",
-                result.Errors.Select(e => e.Description)));
-    }
-
-    #region BRANCH MAPPING
-
-    private BranchResponse MapBranch(Branch branch)
+    private BranchResponse MapBranch(
+        Branch branch,
+        Guid? currentEmployeeId)
     {
         var response = mapper.Map<BranchResponse>(branch);
 
         response.IsManager =
-            CurrentUserRole == Roles.BranchManager &&
-            !string.IsNullOrWhiteSpace(CurrentUserId) &&
-            branch.BranchManagerId == CurrentUserId;
+            authHelper.UserRole == Roles.BranchManager &&
+            currentEmployeeId.HasValue &&
+            branch.BranchManagerId == currentEmployeeId.Value;
 
         return response;
     }
 
-    #endregion
-
-    #region BRANCH STATUS
+    #region CHANGE BRANCH STATUS
 
     public async Task<ApiResponse<BranchResponse>> ChangeBranchStatus(
         Guid branchId,
         ActivateBranchRequest request)
     {
-        EnsureAdmin();
+        var currentUserId = authHelper.UserId;
+        var currentUserRole = authHelper.UserRole;
+
+        if (string.IsNullOrWhiteSpace(currentUserId))
+            throw new UserFriendlyException(ErrorMessages.Unauthorized);
+
+        if (currentUserRole != Roles.Admin)
+            throw new UserFriendlyException(ErrorMessages.Forbidden);
 
         var branch = await db.Branches
+            .Include(b => b.BranchManager)
             .FirstOrDefaultAsync(b => b.Id == branchId);
 
         if (branch == null)
-            throw new UserFriendlyException(
-                ErrorMessages.BranchNotFound);
+            throw new UserFriendlyException(ErrorMessages.BranchNotFound);
 
         branch.IsActive = request.IsActive;
         branch.UpdatedAt = DateTime.UtcNow;
@@ -96,7 +69,7 @@ public class BranchService(
 
         return new ApiResponse<BranchResponse>
         {
-            Data = MapBranch(branch),
+            Data = MapBranch(branch, null),
             IsSuccess = true,
             Message = branch.IsActive
                 ? "Branch activated successfully."
@@ -112,24 +85,28 @@ public class BranchService(
         Guid branchId,
         AssignBranchManagerRequest request)
     {
-        EnsureAdmin();
+        var currentUserId = authHelper.UserId;
+        var currentUserRole = authHelper.UserRole;
+
+        if (string.IsNullOrWhiteSpace(currentUserId))
+            throw new UserFriendlyException(ErrorMessages.Unauthorized);
+
+        if (currentUserRole != Roles.Admin)
+            throw new UserFriendlyException(ErrorMessages.Forbidden);
 
         var branch = await db.Branches
             .FirstOrDefaultAsync(b => b.Id == branchId);
 
         if (branch == null)
-            throw new UserFriendlyException(
-                ErrorMessages.BranchNotFound);
+            throw new UserFriendlyException(ErrorMessages.BranchNotFound);
 
         var user = await userManager.FindByIdAsync(request.UserId);
 
         if (user == null)
-            throw new UserFriendlyException(
-                ErrorMessages.UserNotFound);
+            throw new UserFriendlyException(ErrorMessages.UserNotFound);
 
         if (await userManager.IsInRoleAsync(user, Roles.Admin))
-            throw new UserFriendlyException(
-                ErrorMessages.Forbidden);
+            throw new UserFriendlyException(ErrorMessages.Forbidden);
 
         var employee = await db.Employees
             .FirstOrDefaultAsync(e => e.UserId == user.Id);
@@ -139,8 +116,7 @@ public class BranchService(
                 "The selected user does not have an employee record.");
 
         if (!employee.IsActive)
-            throw new UserFriendlyException(
-                ErrorMessages.Forbidden);
+            throw new UserFriendlyException(ErrorMessages.Forbidden);
 
         if (employee.BranchId != Guid.Empty &&
             employee.BranchId != branchId)
@@ -151,7 +127,7 @@ public class BranchService(
 
         var alreadyAssigned = await db.Branches
             .AnyAsync(b =>
-                b.BranchManagerId == user.Id &&
+                b.BranchManagerId == employee.Id &&
                 b.Id != branchId);
 
         if (alreadyAssigned)
@@ -165,60 +141,67 @@ public class BranchService(
 
         var currentRoles = await userManager.GetRolesAsync(user);
 
-        if (currentRoles.Count != 1 ||
-            currentRoles[0] != Roles.BranchManager)
+        if (!currentRoles.Contains(Roles.BranchManager))
         {
-            if (currentRoles.Count > 0)
+            var result = await userManager.AddToRoleAsync(
+                user,
+                Roles.BranchManager);
+
+            if (!result.Succeeded)
             {
-                var removeResult = await userManager
-                    .RemoveFromRolesAsync(user, currentRoles);
-
-                EnsureIdentitySucceeded(removeResult);
+                throw new InvalidOperationException(
+                    string.Join("; ",
+                        result.Errors.Select(e => e.Description)));
             }
-
-            var addResult = await userManager
-                .AddToRoleAsync(user, Roles.BranchManager);
-
-            EnsureIdentitySucceeded(addResult);
         }
 
         employee.BranchId = branch.Id;
         employee.UpdatedAt = DateTime.UtcNow;
 
-        branch.BranchManagerId = user.Id;
+        branch.BranchManagerId = employee.Id;
         branch.UpdatedAt = DateTime.UtcNow;
 
         await db.SaveChangesAsync();
 
-        if (!string.IsNullOrWhiteSpace(previousManagerId) &&
-            previousManagerId != user.Id)
+        if (previousManagerId.HasValue &&
+            previousManagerId.Value != employee.Id)
         {
-            var previousManager = await userManager
-                .FindByIdAsync(previousManagerId);
+            var previousManager = await db.Employees
+                .Include(e => e.User)
+                .FirstOrDefaultAsync(
+                    e => e.Id == previousManagerId.Value);
 
-            if (previousManager != null &&
-                await userManager.IsInRoleAsync(
-                    previousManager,
-                    Roles.BranchManager))
+            if (previousManager?.User != null)
             {
-                var removeResult = await userManager
-                    .RemoveFromRoleAsync(
-                        previousManager,
+                var previousUser = previousManager.User;
+
+                if (await userManager.IsInRoleAsync(
+                    previousUser,
+                    Roles.BranchManager))
+                {
+                    var result = await userManager.RemoveFromRoleAsync(
+                        previousUser,
                         Roles.BranchManager);
 
-                EnsureIdentitySucceeded(removeResult);
+                    if (!result.Succeeded)
+                    {
+                        throw new InvalidOperationException(
+                            string.Join("; ",
+                                result.Errors.Select(e => e.Description)));
+                    }
+                }
             }
         }
 
         await transaction.CommitAsync();
 
         await db.Entry(branch)
-        .Reference(b => b.BranchManager)
-        .LoadAsync();
+            .Reference(b => b.BranchManager)
+            .LoadAsync();
 
         return new ApiResponse<BranchResponse>
         {
-            Data = MapBranch(branch),
+            Data = MapBranch(branch, null),
             IsSuccess = true,
             Message = "Manager assigned successfully."
         };
@@ -231,7 +214,14 @@ public class BranchService(
     public async Task<ApiResponse<BranchResponse>> CreateBranch(
         CreateBranchRequest request)
     {
-        EnsureAdmin();
+        var currentUserId = authHelper.UserId;
+        var currentUserRole = authHelper.UserRole;
+
+        if (string.IsNullOrWhiteSpace(currentUserId))
+            throw new UserFriendlyException(ErrorMessages.Unauthorized);
+
+        if (currentUserRole != Roles.Admin)
+            throw new UserFriendlyException(ErrorMessages.Forbidden);
 
         var existingBranch = await db.Branches
             .AnyAsync(b =>
@@ -273,13 +263,13 @@ public class BranchService(
         }
         catch (Exception)
         {
-            // Email failure should not undo branch creation.
+            // Email failure does not undo branch creation.
             // Log the exception in production.
         }
 
         return new ApiResponse<BranchResponse>
         {
-            Data = MapBranch(newBranch),
+            Data = MapBranch(newBranch, null),
             IsSuccess = true,
             Message = "Branch Created"
         };
@@ -298,17 +288,31 @@ public class BranchService(
 
         var branch = await db.Branches
             .AsNoTracking()
-            .Include(b => b.Employees)
             .Include(b => b.BranchManager)
             .FirstOrDefaultAsync(b => b.Code == code);
 
         if (branch == null)
-            throw new UserFriendlyException(
-                ErrorMessages.BranchNotFound);
+            throw new UserFriendlyException(ErrorMessages.BranchNotFound);
+
+        Guid? currentEmployeeId = null;
+
+        var currentUserId = authHelper.UserId;
+
+        if (!string.IsNullOrWhiteSpace(currentUserId) &&
+            authHelper.UserRole == Roles.BranchManager)
+        {
+            currentEmployeeId = await db.Employees
+                .AsNoTracking()
+                .Where(e =>
+                    e.UserId == currentUserId &&
+                    e.IsActive)
+                .Select(e => (Guid?)e.Id)
+                .FirstOrDefaultAsync();
+        }
 
         return new ApiResponse<BranchResponse>
         {
-            Data = MapBranch(branch),
+            Data = MapBranch(branch, currentEmployeeId),
             IsSuccess = true,
             Message = "Branch Found"
         };
@@ -323,15 +327,31 @@ public class BranchService(
     {
         var branch = await db.Branches
             .AsNoTracking()
+            .Include(b => b.BranchManager)
             .FirstOrDefaultAsync(b => b.Id == id);
 
         if (branch == null)
-            throw new UserFriendlyException(
-                ErrorMessages.BranchNotFound);
+            throw new UserFriendlyException(ErrorMessages.BranchNotFound);
+
+        Guid? currentEmployeeId = null;
+
+        var currentUserId = authHelper.UserId;
+
+        if (!string.IsNullOrWhiteSpace(currentUserId) &&
+            authHelper.UserRole == Roles.BranchManager)
+        {
+            currentEmployeeId = await db.Employees
+                .AsNoTracking()
+                .Where(e =>
+                    e.UserId == currentUserId &&
+                    e.IsActive)
+                .Select(e => (Guid?)e.Id)
+                .FirstOrDefaultAsync();
+        }
 
         return new ApiResponse<BranchResponse>
         {
-            Data = MapBranch(branch),
+            Data = MapBranch(branch, currentEmployeeId),
             IsSuccess = true,
             Message = "Branch Found"
         };
@@ -342,16 +362,14 @@ public class BranchService(
     #region GET BRANCHES
 
     public async Task<PagedApiResponse<BranchResponse>> GetBranches(
-    string? city,
-    string? searchTerm,
-    int pageNumber = 1,
-    int pageSize = 10)
+        string? city,
+        string? searchTerm,
+        int pageNumber = 1,
+        int pageSize = 10)
     {
         if (pageNumber <= 0 || pageSize <= 0)
-        {
             throw new UserFriendlyException(
                 ErrorMessages.InvalidPagination);
-        }
 
         var branches = db.Branches
             .AsNoTracking()
@@ -380,8 +398,24 @@ public class BranchService(
             .Take(pageSize)
             .ToListAsync();
 
+        Guid? currentEmployeeId = null;
+
+        var currentUserId = authHelper.UserId;
+
+        if (!string.IsNullOrWhiteSpace(currentUserId) &&
+            authHelper.UserRole == Roles.BranchManager)
+        {
+            currentEmployeeId = await db.Employees
+                .AsNoTracking()
+                .Where(e =>
+                    e.UserId == currentUserId &&
+                    e.IsActive)
+                .Select(e => (Guid?)e.Id)
+                .FirstOrDefaultAsync();
+        }
+
         var mappedBranches = pagedBranches
-            .Select(MapBranch)
+            .Select(branch => MapBranch(branch, currentEmployeeId))
             .ToList();
 
         return new PagedApiResponse<BranchResponse>(
@@ -399,33 +433,53 @@ public class BranchService(
         Guid branchId,
         UpdateBranchRequest request)
     {
-        var currentUserId = GetRequiredUserId();
+        var currentUserId = authHelper.UserId;
+        var currentUserRole = authHelper.UserRole;
+
+        if (string.IsNullOrWhiteSpace(currentUserId))
+            throw new UserFriendlyException(ErrorMessages.Unauthorized);
 
         var branch = await db.Branches
+            .Include(b => b.BranchManager)
             .FirstOrDefaultAsync(b => b.Id == branchId);
 
         if (branch == null)
-            throw new UserFriendlyException(
-                ErrorMessages.BranchNotFound);
+            throw new UserFriendlyException(ErrorMessages.BranchNotFound);
 
-        var isAdmin = CurrentUserRole == Roles.Admin;
+        var isAdmin = currentUserRole == Roles.Admin;
+        Guid? currentEmployeeId = null;
 
-        var isBranchManager =
-            CurrentUserRole == Roles.BranchManager &&
-            branch.BranchManagerId == currentUserId;
+        if (!isAdmin)
+        {
+            if (currentUserRole != Roles.BranchManager)
+                throw new UserFriendlyException(
+                    ErrorMessages.Forbidden);
 
-        if (!isAdmin && !isBranchManager)
-            throw new UserFriendlyException(
-                ErrorMessages.Forbidden);
+            currentEmployeeId = await db.Employees
+                .AsNoTracking()
+                .Where(e =>
+                    e.UserId == currentUserId &&
+                    e.IsActive)
+                .Select(e => (Guid?)e.Id)
+                .FirstOrDefaultAsync();
+
+            if (!currentEmployeeId.HasValue ||
+                branch.BranchManagerId != currentEmployeeId.Value)
+            {
+                throw new UserFriendlyException(
+                    ErrorMessages.Forbidden);
+            }
+        }
 
         mapper.Map(request, branch);
+
         branch.UpdatedAt = DateTime.UtcNow;
 
         await db.SaveChangesAsync();
 
         return new ApiResponse<BranchResponse>
         {
-            Data = MapBranch(branch),
+            Data = MapBranch(branch, currentEmployeeId),
             IsSuccess = true,
             Message = "Branch Updated"
         };
@@ -440,40 +494,48 @@ public class BranchService(
         int pageNumber = 1,
         int pageSize = 10)
     {
-        var currentUserId = GetRequiredUserId();
-        var currentUserRole = CurrentUserRole;
+        var currentUserId = authHelper.UserId;
+        var currentUserRole = authHelper.UserRole;
+
+        if (string.IsNullOrWhiteSpace(currentUserId))
+            throw new UserFriendlyException(ErrorMessages.Unauthorized);
 
         if (pageNumber <= 0 || pageSize <= 0)
-        {
             throw new UserFriendlyException(
                 ErrorMessages.InvalidPagination);
-        }
 
         var isAdmin = currentUserRole == Roles.Admin;
         var isBranchManager =
             currentUserRole == Roles.BranchManager;
 
         if (!isAdmin && !isBranchManager)
-        {
             throw new UserFriendlyException(
                 ErrorMessages.Forbidden);
-        }
 
         var branch = await db.Branches
             .AsNoTracking()
             .FirstOrDefaultAsync(b => b.Id == branchId);
 
         if (branch == null)
-        {
             throw new UserFriendlyException(
                 ErrorMessages.BranchNotFound);
-        }
 
-        if (isBranchManager &&
-            branch.BranchManagerId != currentUserId)
+        if (isBranchManager)
         {
-            throw new UserFriendlyException(
-                ErrorMessages.Forbidden);
+            var employeeId = await db.Employees
+                .AsNoTracking()
+                .Where(e =>
+                    e.UserId == currentUserId &&
+                    e.IsActive)
+                .Select(e => (Guid?)e.Id)
+                .FirstOrDefaultAsync();
+
+            if (!employeeId.HasValue ||
+                branch.BranchManagerId != employeeId.Value)
+            {
+                throw new UserFriendlyException(
+                    ErrorMessages.Forbidden);
+            }
         }
 
         var query = db.Employees

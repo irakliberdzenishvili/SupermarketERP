@@ -136,9 +136,6 @@ namespace DotNetApiTemplate.Migrations
                     b.Property<Guid>("BranchId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("BranchId1")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -168,10 +165,6 @@ namespace DotNetApiTemplate.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("BranchId");
-
-                    b.HasIndex("BranchId1")
-                        .IsUnique()
-                        .HasFilter("[BranchId1] IS NOT NULL");
 
                     b.HasIndex("UserId")
                         .IsUnique();
@@ -323,8 +316,8 @@ namespace DotNetApiTemplate.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
 
-                    b.Property<string>("BranchManagerId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<Guid?>("BranchManagerId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("City")
                         .IsRequired()
@@ -392,10 +385,6 @@ namespace DotNetApiTemplate.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("SupermarketERP.Models.Data.Branch.Branch", null)
-                        .WithOne("BranchManager")
-                        .HasForeignKey("Employee", "BranchId1");
-
                     b.HasOne("DotNetApiTemplate.Models.Data.User", "User")
                         .WithOne("Employee")
                         .HasForeignKey("Employee", "UserId")
@@ -458,6 +447,16 @@ namespace DotNetApiTemplate.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("SupermarketERP.Models.Data.Branch.Branch", b =>
+                {
+                    b.HasOne("Employee", "BranchManager")
+                        .WithMany()
+                        .HasForeignKey("BranchManagerId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("BranchManager");
+                });
+
             modelBuilder.Entity("DotNetApiTemplate.Models.Data.User", b =>
                 {
                     b.Navigation("Employee");
@@ -465,8 +464,6 @@ namespace DotNetApiTemplate.Migrations
 
             modelBuilder.Entity("SupermarketERP.Models.Data.Branch.Branch", b =>
                 {
-                    b.Navigation("BranchManager");
-
                     b.Navigation("Employees");
                 });
 #pragma warning restore 612, 618
