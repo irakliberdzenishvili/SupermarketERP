@@ -1,4 +1,7 @@
-﻿namespace SupermarketERP.Models.Response.Branch;
+﻿
+using DotNetApiTemplate.Models.Data;
+using SupermarketERP.Models.Response.BranchManagerResponse;
+
 
 public class BranchResponse
 {
@@ -18,4 +21,14 @@ public class BranchResponse
     public DateTime? UpdatedAt { get; set; }
 
     public bool IsManager { get; set; }
+
+    public User User { get; set; }
+
+    public string? BranchManagerId { get; set; }
+
+    public BranchManagerResponse? BranchManager { get; set; }
+
+    public ICollection<Employee> Employees { get; set; }
+        = new List<Employee>();
+
 }

@@ -51,7 +51,11 @@ public enum ErrorMessages
     UserIsNotBranchManager = 37,
     ManagerAlreadyAssigned = 38,
     FailedToAssignRole = 39,
-    FailedToRemoveRole = 40
+    FailedToRemoveRole = 40,
+
+     NoAssignedEmployees = 41,
+    InvalidPagination = 42
+
 
 
 }

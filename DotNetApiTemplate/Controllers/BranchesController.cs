@@ -7,7 +7,7 @@ using SupermarketERP.Constants;
 using SupermarketERP.DB.Seed;
 using SupermarketERP.Interfaces;
 using SupermarketERP.Models.Request.Branch;
-using SupermarketERP.Models.Response.Branch;
+using SupermarketERP.Models.Response.EmployeeResponse;
 using SupermarketERP.Security;
 
 namespace SupermarketERP.Controllers
@@ -65,19 +65,27 @@ namespace SupermarketERP.Controllers
             return branch;
         }
 
-        [HttpPost("{branchId:guid}/manager")]
+        [HttpPost("{id:guid}/manager")]
         [Authorize(Roles = Roles.Admin)]
-        public async Task<ApiResponse<BranchResponse>> AssignManager([FromRoute] Guid branchId, AssignBranchManagerRequest request)
+        public async Task<ApiResponse<BranchResponse>> AssignManager([FromRoute] Guid id, AssignBranchManagerRequest request)
         {
-           var result =  await branchService.AssignBranchManager(branchId,request);
+           var result =  await branchService.AssignBranchManager(id, request);
             return result;
         }
 
-        [HttpPost("{branchId:guid}/activate")]
+        [HttpPost("{id:guid}/activate")]
         [Authorize(Roles = Roles.Admin)]
-        public async Task<ApiResponse<BranchResponse>> ChangeBranchStatus([FromRoute] Guid branchId, ActivateBranchRequest request)
+        public async Task<ApiResponse<BranchResponse>> ChangeBranchStatus([FromRoute] Guid id, ActivateBranchRequest request)
         {
-            var result = await branchService.ChangeBranchStatus(branchId, request);
+            var result = await branchService.ChangeBranchStatus(id, request);
+            return result;
+        }
+
+        [HttpPost("{id:guid}/employees")]
+        [Authorize(Roles = $"{Roles.Admin},{Roles.BranchManager}")]
+        public async Task<PagedApiResponse<EmployeeResponse>> GetAssignedEmployees([FromRoute] Guid id, int pageNumber = 1, int pageSize = 10)
+        {
+            var result = await branchService.GetAssignedEmployees(id, pageNumber, pageSize);
             return result;
         }
 
