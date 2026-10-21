@@ -54,7 +54,8 @@ public enum ErrorMessages
     FailedToRemoveRole = 40,
 
      NoAssignedEmployees = 41,
-    InvalidPagination = 42
+    InvalidPagination = 42,
+    EmployeeAlreadyAssigned=43
 
 
 

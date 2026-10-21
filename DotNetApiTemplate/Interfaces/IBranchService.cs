@@ -1,5 +1,6 @@
 ﻿using DotNetApiTemplate.Models.Response;
 using SupermarketERP.Models.Request.Branch;
+using SupermarketERP.Models.Request.Employee;
 using SupermarketERP.Models.Response.EmployeeResponse;
 
 namespace SupermarketERP.Interfaces
@@ -23,6 +24,8 @@ namespace SupermarketERP.Interfaces
         Task<ApiResponse<BranchResponse>> ChangeBranchStatus(Guid branchId, ActivateBranchRequest request);
 
         Task<PagedApiResponse<EmployeeResponse>> GetAssignedEmployees(Guid branchId, int pageNumber = 1, int pageSize = 10);
+
+        Task<ApiResponse<EmployeeResponse>> AssignEmployeeToBranch(Guid branchId, AssignEmployeeRequest request);
             
 
     }
