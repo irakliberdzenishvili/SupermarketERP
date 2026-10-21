@@ -45,7 +45,7 @@ public class BranchService(
 
     public async Task<ApiResponse<BranchResponse>> ChangeBranchStatus(
         Guid branchId,
-        ActivateBranchRequest request)
+        ChangeBranchStatusRequest request)
     {
         var currentUserId = authHelper.UserId;
         var currentUserRole = authHelper.UserRole;

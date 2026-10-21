@@ -1,6 +1,6 @@
 ﻿namespace SupermarketERP.Models.Request.Branch
 {
-    public class ActivateBranchRequest
+    public class ChangeBranchStatusRequest
     {
         public bool IsActive { get; set; }
 

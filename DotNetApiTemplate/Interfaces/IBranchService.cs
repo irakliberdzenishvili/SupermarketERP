@@ -22,7 +22,7 @@ namespace SupermarketERP.Interfaces
 
         Task<ApiResponse<BranchResponse>> AssignBranchManager(Guid branchId, AssignBranchManagerRequest request);
 
-        Task<ApiResponse<BranchResponse>> ChangeBranchStatus(Guid branchId, ActivateBranchRequest request);
+        Task<ApiResponse<BranchResponse>> ChangeBranchStatus(Guid branchId, ChangeBranchStatusRequest request);
 
         Task<PagedApiResponse<EmployeeResponse>> GetAssignedEmployees(Guid branchId, int pageNumber = 1, int pageSize = 10);
 
@@ -31,7 +31,6 @@ namespace SupermarketERP.Interfaces
         Task<ApiResponse<EmployeeResponse>> UnassignEmployeeFromBranch(Guid branchId, UnassignEmployeeRequest request);
 
         Task<PagedApiResponse<BranchResponse>> GetStatistics(Guid branchId, int pageNumber = 1, int pageSize = 10);
-
 
     }
 }

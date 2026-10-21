@@ -75,9 +75,9 @@ namespace SupermarketERP.Controllers
             return result;
         }
 
-        [HttpPost("{id:guid}/activate")]
+        [HttpPatch("{id:guid}/status")]
         [Authorize(Roles = Roles.Admin)]
-        public async Task<ApiResponse<BranchResponse>> ChangeBranchStatus([FromRoute] Guid id, [FromBody] ActivateBranchRequest request)
+        public async Task<ApiResponse<BranchResponse>> ChangeBranchStatus([FromRoute] Guid id, [FromBody] ChangeBranchStatusRequest request)
         {
             var result = await branchService.ChangeBranchStatus(id, request);
             return result;
