@@ -55,7 +55,8 @@ public enum ErrorMessages
 
      NoAssignedEmployees = 41,
     InvalidPagination = 42,
-    EmployeeAlreadyAssigned=43
+    EmployeeAlreadyAssigned=43,
+    EmployeeNotFound=44
 
 
 

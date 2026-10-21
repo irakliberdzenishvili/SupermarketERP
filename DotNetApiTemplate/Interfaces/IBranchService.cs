@@ -1,4 +1,5 @@
 ﻿using DotNetApiTemplate.Models.Response;
+using SupermarketERP.Models.Request.AssignEmployeeRequest;
 using SupermarketERP.Models.Request.Branch;
 using SupermarketERP.Models.Request.Employee;
 using SupermarketERP.Models.Response.EmployeeResponse;
@@ -26,7 +27,11 @@ namespace SupermarketERP.Interfaces
         Task<PagedApiResponse<EmployeeResponse>> GetAssignedEmployees(Guid branchId, int pageNumber = 1, int pageSize = 10);
 
         Task<ApiResponse<EmployeeResponse>> AssignEmployeeToBranch(Guid branchId, AssignEmployeeRequest request);
-            
+
+        Task<ApiResponse<EmployeeResponse>> UnassignEmployeeFromBranch(Guid branchId, UnassignEmployeeRequest request);
+
+        Task<PagedApiResponse<BranchResponse>> GetStatistics(Guid branchId, int pageNumber = 1, int pageSize = 10);
+
 
     }
 }

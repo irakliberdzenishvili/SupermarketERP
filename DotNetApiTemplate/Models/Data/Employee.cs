@@ -1,4 +1,5 @@
 ﻿
+using DotNetApiTemplate.Interfaces;
 using DotNetApiTemplate.Models.Data;
 using Microsoft.EntityFrameworkCore;
 using SupermarketERP.Models.Data.Branch;
@@ -7,7 +8,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 
 [Index(nameof(UserId), IsUnique = true)]
-public class Employee
+public class Employee : ISoftDeletable
 {
     [Key]
     public Guid Id { get; set; } = Guid.CreateVersion7();
@@ -39,4 +40,5 @@ public class Employee
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public DateTime? UpdatedAt { get; set; }
+    public bool IsDeleted { get; set; }
 }

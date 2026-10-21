@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace SupermarketERP.Models.Request.Employee
+namespace SupermarketERP.Models.Request.AssignEmployeeRequest
 {
     public class AssignEmployeeRequest
     {

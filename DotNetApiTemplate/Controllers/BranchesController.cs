@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using SupermarketERP.Constants;
 using SupermarketERP.DB.Seed;
 using SupermarketERP.Interfaces;
+using SupermarketERP.Models.Request.AssignEmployeeRequest;
 using SupermarketERP.Models.Request.Branch;
 using SupermarketERP.Models.Request.Employee;
 using SupermarketERP.Models.Response.EmployeeResponse;
@@ -102,6 +103,20 @@ namespace SupermarketERP.Controllers
             };
 
             return await branchService.AssignEmployeeToBranch(id, request);
+        }
+
+        [HttpDelete("{id:guid}/employees/{userId:guid}")]
+        [Authorize(Roles = $"{Roles.Admin},{Roles.BranchManager}")]
+        public async Task<ApiResponse<EmployeeResponse>> UnassignEmployeeFrojBranch(
+    [FromRoute] Guid id,
+    [FromRoute] Guid userId)
+        {
+            var request = new UnassignEmployeeRequest
+            {
+                UserId = userId.ToString()
+            };
+
+            return await branchService.UnassignEmployeeFromBranch(id, request);
         }
 
     }

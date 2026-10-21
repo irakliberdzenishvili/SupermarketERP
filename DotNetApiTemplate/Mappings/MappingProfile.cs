@@ -39,18 +39,13 @@ namespace DotNetApiTemplate.Mappings
                 .ForMember(dest => dest.FirstName,
                     opt => opt.MapFrom(src => src.FirstName))
                 .ForMember(dest => dest.LastName,
-                    opt => opt.MapFrom(src => src.LastName))
-                .ForMember(dest => dest.BranchManagerId,
-                    opt => opt.MapFrom(src =>
-                        src.Branch != null
-                            ? src.Branch.BranchManagerId
-                            : null));
+                    opt => opt.MapFrom(src => src.LastName));
 
             CreateMap<Employee, BranchManagerResponse>()
                 .ForMember(dest => dest.Email,
-                    opt => opt.MapFrom(src => src.FirstName))
+                    opt => opt.MapFrom(src => src.User.Email))
                 .ForMember(dest => dest.UserName,
-                    opt => opt.MapFrom(src => src.LastName));
+                    opt => opt.MapFrom(src => src.User.UserName));
 
             #endregion
         }

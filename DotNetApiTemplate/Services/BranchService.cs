@@ -13,6 +13,7 @@ using SupermarketERP.Helpers;
 using SupermarketERP.Interfaces;
 using SupermarketERP.Models.Data;
 using SupermarketERP.Models.Data.Branch;
+using SupermarketERP.Models.Request.AssignEmployeeRequest;
 using SupermarketERP.Models.Request.Branch;
 using SupermarketERP.Models.Request.Employee;
 using SupermarketERP.Models.Response.EmployeeResponse;
@@ -699,5 +700,104 @@ public class BranchService(
             IsSuccess = true,
             Message = "Employee Assigned"
         };
+    }
+
+    public async Task<ApiResponse<EmployeeResponse>> UnassignEmployeeFromBranch(Guid branchId, UnassignEmployeeRequest request)
+    {
+        var currentUserId = authHelper.UserId;
+        var currentUserRole = authHelper.UserRole;
+
+        var isAdmin = currentUserRole == Roles.Admin;
+
+        if (!isAdmin)
+        {
+            throw new UserFriendlyException(ErrorMessages.Forbidden);
+        }
+
+        var branch = await db.Branches.FirstOrDefaultAsync(b => b.Id == branchId && b.IsActive);
+
+        if (branch == null)
+        {
+            throw new UserFriendlyException(ErrorMessages.BranchNotFound);
+        }
+
+        var user = await db.Users.FirstOrDefaultAsync(b => b.Id == request.UserId);
+
+        if (user == null)
+        {
+            throw new UserFriendlyException(ErrorMessages.UserNotFound);
+        }
+
+        var employee = await db.Employees
+            .Include(e => e.Branch)
+            .FirstOrDefaultAsync(b => b.UserId == user.Id && b.BranchId == branchId);
+
+        if (employee == null)
+        {
+            throw new UserFriendlyException(ErrorMessages.EmployeeNotFound);
+        }
+
+        if (branch.BranchManagerId == employee.Id)
+        {
+            throw new UserFriendlyException(ErrorMessages.Forbidden);
+        }
+        
+        await using var transaction = await db.Database.BeginTransactionAsync();
+
+        var currentRoles = await userManager.GetRolesAsync(user);
+
+        var rolesToRemove = currentRoles
+            .Where(r => r != Roles.Admin && r != Roles.User)
+            .ToList();
+
+        if (rolesToRemove.Count > 0)
+        {
+            var removeResult = await userManager.RemoveFromRolesAsync(
+                user,
+                rolesToRemove);
+
+            if (!removeResult.Succeeded)
+            {
+                throw new InvalidOperationException(
+                    string.Join("; ",
+                        removeResult.Errors.Select(e => e.Description)));
+            }
+        }
+
+            if (!await userManager.IsInRoleAsync(user, Roles.User))
+            {
+                var addResult = await userManager.AddToRoleAsync(
+                    user,
+                    Roles.User);
+
+                if (!addResult.Succeeded)
+                {
+                    throw new InvalidOperationException(
+                        string.Join("; ",
+                            addResult.Errors.Select(e => e.Description)));
+                }
+            }
+
+        employee.IsActive = false;
+        employee.IsDeleted = true;
+        employee.UpdatedAt = DateTime.UtcNow;
+        employee.Branch.UpdatedAt = DateTime.UtcNow;
+        await db.SaveChangesAsync();
+
+        await transaction.CommitAsync();
+
+        var mappedResponse = mapper.Map<EmployeeResponse>(employee);
+
+        return new ApiResponse<EmployeeResponse>
+        {
+            Data = mappedResponse,
+            IsSuccess = true,
+            Message = "Employee Unassigned successfully."
+        };
+    }
+
+    public Task<PagedApiResponse<BranchResponse>> GetStatistics(Guid branchId, int pageNumber = 1, int pageSize = 10)
+    {
+        throw new NotImplementedException();
     }
 }
