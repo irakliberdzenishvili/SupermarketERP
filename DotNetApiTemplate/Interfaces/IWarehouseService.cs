@@ -9,5 +9,10 @@ namespace SupermarketERP.Interfaces
         Task<PagedApiResponse<WarehouseResponse>> GetWarehouses(string? searchTerm, int pageNumber = 1, int pageSize = 10);
 
         Task<ApiResponse<WarehouseResponse>> CreateWarehouse(CreateWarehouseRequest request);
+
+        Task<ApiResponse<WarehouseResponse>> GetWarehouseById(Guid id);
+
+        Task<ApiResponse<WarehouseResponse>> GetWarehouseByCode(string code);
+
     }
 }

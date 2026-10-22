@@ -26,6 +26,7 @@ public class BranchService(
     UserManager<User> userManager
 ) : IBranchService
 {
+    private string CurrentUserRole = authHelper.UserRole;
     private BranchResponse MapBranch(
      Branch branch,
      Guid? currentEmployeeId)
@@ -35,6 +36,8 @@ public class BranchService(
         response.IsManager =
             currentEmployeeId.HasValue &&
             branch.BranchManagerId == currentEmployeeId.Value;
+
+        response.IsAdmin = CurrentUserRole == Roles.Admin; 
 
         return response;
     }

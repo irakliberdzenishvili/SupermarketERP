@@ -34,12 +34,7 @@ namespace SupermarketERP.Services
                 throw new UserFriendlyException(ErrorMessages.UserNotFound);
             }
 
-            if (!await userManager.IsInRoleAsync(user, Roles.Admin))
-            {
-                throw new UserFriendlyException(ErrorMessages.Forbidden);
-            }
-
-            return true;
+            return await userManager.IsInRoleAsync(user, Roles.Admin);
         }
 
         private WarehouseResponse MapWarehouse(
@@ -49,7 +44,9 @@ namespace SupermarketERP.Services
             var response = mapper.Map<WarehouseResponse>(warehouse);
 
             response.IsManager = currentEmployeeId.HasValue
-                && warehouse.WarehouseManager?.EmployeeId == currentEmployeeId.Value;
+                && warehouse.WarehouseManagerId == currentEmployeeId.Value;
+
+            response.IsAdmin = CurrentUserRole == Roles.Admin;
 
             return response;
         }
@@ -249,6 +246,115 @@ namespace SupermarketERP.Services
                 Data = mappedResponse,
                 IsSuccess = true,
                 Message = "Warehouse Created"
+            };
+        }
+
+        public async Task<ApiResponse<WarehouseResponse>> GetWarehouseById(Guid id)
+        {
+            var isAdmin = await IsAdmin();
+            var isWarehouseManager = CurrentUserRole == Roles.WarehouseManager;
+
+            if (!isAdmin && !isWarehouseManager)
+            {
+                throw new UserFriendlyException(ErrorMessages.Forbidden);
+            }
+
+            Guid? currentEmployeeId = await db.Employees
+        .AsNoTracking()
+        .Where(e => e.UserId == CurrentUserId
+            && e.IsActive
+            && !e.IsDeleted)
+        .Select(e => (Guid?)e.Id)
+        .FirstOrDefaultAsync();
+
+            var query =  db.Warehouses
+                .AsNoTracking()
+                .Include(x => x.WarehouseManager)
+                   .ThenInclude(b => b.Employee)
+                      .ThenInclude(b => b.User)
+                .Include(x => x.Branches)
+                .Where(x => x.Id == id && x.IsActive && !x.IsDeleted);
+
+            if (!isAdmin)
+            {
+
+                if (!currentEmployeeId.HasValue)
+                {
+                    throw new UserFriendlyException(ErrorMessages.EmployeeNotFound);
+                }
+
+                query = query.Where(w => w.WarehouseManager != null && w.WarehouseManager.EmployeeId == currentEmployeeId);
+            }
+
+            var warehouse = await query.FirstOrDefaultAsync();
+
+            if (warehouse == null)
+            {
+                throw new UserFriendlyException(ErrorMessages.WarehouseNotFound);
+            }
+
+            var mappedResponse = MapWarehouse(warehouse, currentEmployeeId);
+
+            return new ApiResponse<WarehouseResponse>
+            {
+                Data = mappedResponse,
+                IsSuccess = true,
+                Message = "Warehouse Retrieved"
+            };
+        }
+
+        public async Task<ApiResponse<WarehouseResponse>> GetWarehouseByCode(string code)
+        {
+            var isAdmin = await IsAdmin();
+            var isWarehouseManager = CurrentUserRole == Roles.WarehouseManager;
+
+            if (!isAdmin && !isWarehouseManager)
+            {
+                throw new UserFriendlyException(ErrorMessages.Forbidden);
+            }
+
+            Guid? currentEmployeeId = await db.Employees
+        .AsNoTracking()
+        .Where(e => e.UserId == CurrentUserId
+            && e.IsActive
+            && !e.IsDeleted)
+        .Select(e => (Guid?)e.Id)
+        .FirstOrDefaultAsync();
+
+            var query =  db.Warehouses
+                .AsNoTracking()
+                .Include(b => b.WarehouseManager)
+                   .ThenInclude(wm => wm.Employee)
+                     .ThenInclude(e => e.User)
+                .Include(b => b.Branches)
+                .Where(w => w.Code == code && !w.IsDeleted && w.IsActive);
+
+
+           if (!isAdmin)
+            {
+                if (!currentEmployeeId.HasValue)
+                {
+                    throw new UserFriendlyException(ErrorMessages.EmployeeNotFound);
+                }
+
+
+                query = query.Where(w => w.WarehouseManager != null && w.WarehouseManager.EmployeeId == currentEmployeeId);
+            }
+
+            var warehouse = await query.FirstOrDefaultAsync();
+
+            if (warehouse == null)
+            {
+                throw new UserFriendlyException(ErrorMessages.WarehouseNotFound);
+            }
+
+            var mappedResponse = MapWarehouse(warehouse, currentEmployeeId);
+
+            return new ApiResponse<WarehouseResponse>
+            {
+                Data = mappedResponse,
+                IsSuccess = true,
+                Message = "Warehouse Retrieved"
             };
         }
     }

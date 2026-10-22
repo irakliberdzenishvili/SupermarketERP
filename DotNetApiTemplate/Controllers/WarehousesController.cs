@@ -36,4 +36,22 @@ public class WarehousesController(
     {
         return await warehouseService.CreateWarehouse(request);
     }
+
+    [HttpGet("{id:guid}")]
+    [Authorize(Roles = $"{Roles.Admin},{Roles.WarehouseManager}")]
+    [EnableRateLimiting(WarehouseRateLimitPolicy.Get)]
+    public async Task<ApiResponse<WarehouseResponse>> GetWarehouseById(
+    [FromRoute] Guid id)
+    {
+        return await warehouseService.GetWarehouseById(id);
+    }
+
+    [HttpGet("{code}")]
+    [Authorize(Roles = $"{Roles.Admin},{Roles.WarehouseManager}")]
+    [EnableRateLimiting(WarehouseRateLimitPolicy.Get)]
+    public async Task<ApiResponse<WarehouseResponse>> GetWarehouseByCode(
+    [FromRoute] string code)
+    {
+        return await warehouseService.GetWarehouseByCode(code);
+    }
 }

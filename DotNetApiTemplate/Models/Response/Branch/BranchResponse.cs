@@ -17,7 +17,9 @@ public class BranchResponse
 
     public bool IsActive { get; set; }
 
-    public bool IsManager { get; set; }
+    public bool IsManager { get; set; } = false;
+
+    public bool IsAdmin { get; set; } = false;
 
     public string? BranchManagerId { get; set; }
 

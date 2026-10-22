@@ -59,7 +59,8 @@ public enum ErrorMessages
     EmployeeNotFound=44,
     BranchIdsIsRequired=45,
     WarehouseManagerIdIsRequired= 46,
-    BranchAlreadyAssigned = 47
+    BranchAlreadyAssigned = 47,
+    WarehouseNotFound = 48
 
 
 
