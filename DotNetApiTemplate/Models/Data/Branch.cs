@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace SupermarketERP.Models.Data.Branch;
+namespace SupermarketERP.Models.Data;
 
 [Index(nameof(Code), IsUnique = true)]
 public class Branch : ISoftDeletable
@@ -51,4 +51,9 @@ public class Branch : ISoftDeletable
 
     public ICollection<Employee> Employees { get; set; }
         = new List<Employee>();
+
+    public Guid? WarehouseId { get; set; }
+
+    public Warehouse Warehouse { get; set; }
+
 }

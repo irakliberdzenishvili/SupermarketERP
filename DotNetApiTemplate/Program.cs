@@ -14,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using SupermarketERP.DB.Seed;
+using SupermarketERP.Helpers;
 using SupermarketERP.Interfaces;
 using SupermarketERP.Security;
 using SupermarketERP.Services;
@@ -94,18 +95,19 @@ builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<JwtHelper>();
 builder.Services.AddScoped<AuthHelper>();
+builder.Services.AddScoped<WarehouseHelper>();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IBranchService, BranchService>();
+builder.Services.AddScoped<IWarehouseService, WarehouseService>();
+
 
 builder.Services.AddRateLimiter(options =>
 {
-    options.AddPolicy<string, AuthRateLimitPolicy>(
-        AuthRateLimitPolicy.PolicyName);
-
-    options.AddPolicy<string, BranchRateLimitPolicy>(
-        BranchRateLimitPolicy.PolicyName);
+    AuthRateLimitPolicy.RegisterPolicies(options);
+    BranchRateLimitPolicy.Register(options);
+    WarehouseRateLimitPolicy.Register(options);
 
     options.RejectionStatusCode =
         StatusCodes.Status429TooManyRequests;

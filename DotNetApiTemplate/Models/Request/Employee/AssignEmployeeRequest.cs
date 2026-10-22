@@ -1,10 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace SupermarketERP.Models.Request.AssignEmployeeRequest
+namespace SupermarketERP.Models.Request;
+
+public class AssignEmployeeRequest
 {
-    public class AssignEmployeeRequest
-    {
-        [Required]
-        public string UserId { get; set; } = string.Empty;
-    }
+    [Required]
+    public string UserId { get; set; } = string.Empty;
 }

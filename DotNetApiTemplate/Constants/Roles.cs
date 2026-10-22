@@ -10,6 +10,8 @@ public static class Roles
     public const string Employee = "Employee";
     public const string User = "User";
 
+    public const string WarehouseManager = "WarehouseManager";
+
     public static readonly string[] All =
     [
         Admin,
@@ -18,6 +20,7 @@ public static class Roles
         WarehouseWorker,
         Cashier,
         Employee,
-        User
+        User,
+        WarehouseManager
     ];
 }

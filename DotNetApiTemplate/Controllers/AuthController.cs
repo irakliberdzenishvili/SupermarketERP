@@ -1,5 +1,4 @@
-﻿
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using DotNetApiTemplate.Helpers;
 using DotNetApiTemplate.Interfaces;
 using DotNetApiTemplate.Models.Request.Auth;
@@ -14,19 +13,21 @@ namespace DotNetApiTemplate.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[EnableRateLimiting(AuthRateLimitPolicy.PolicyName)]
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
     private readonly AuthHelper _authHelper;
 
-    public AuthController(IAuthService authService, AuthHelper authHelper)
+    public AuthController(
+        IAuthService authService,
+        AuthHelper authHelper)
     {
         _authService = authService;
         _authHelper = authHelper;
     }
 
     [HttpPost("register")]
+    [EnableRateLimiting(AuthRateLimitPolicy.Register)]
     public async Task<ApiResponse> Register(
         [FromBody] RegisterRequest request)
     {
@@ -40,6 +41,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
+    [EnableRateLimiting(AuthRateLimitPolicy.Login)]
     public async Task<ApiResponse<LoginResponse>> Login(
         [FromBody] LoginRequest request)
     {
@@ -52,6 +54,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("refresh-token")]
+    [EnableRateLimiting(AuthRateLimitPolicy.RefreshToken)]
     public async Task<ApiResponse<LoginResponse>> RefreshToken(
         [FromBody] RefreshTokenRequest request)
     {
@@ -64,6 +67,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("confirm-email")]
+    [EnableRateLimiting(AuthRateLimitPolicy.ConfirmEmail)]
     public async Task<ApiResponse> ConfirmEmail(
         [FromBody] ConfirmEmailRequest request)
     {
@@ -77,6 +81,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("resend-confirmation")]
+    [EnableRateLimiting(AuthRateLimitPolicy.ResendConfirmation)]
     public async Task<ApiResponse> ResendConfirmation(
         [FromBody] ResendConfirmationRequest request)
     {
@@ -90,6 +95,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("forgot-password")]
+    [EnableRateLimiting(AuthRateLimitPolicy.ForgotPassword)]
     public async Task<ApiResponse> ForgotPassword(
         [FromBody] ForgotPasswordRequest request)
     {
@@ -103,6 +109,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("reset-password")]
+    [EnableRateLimiting(AuthRateLimitPolicy.ResetPassword)]
     public async Task<ApiResponse> ResetPassword(
         [FromBody] ResetPasswordRequest request)
     {
@@ -117,6 +124,7 @@ public class AuthController : ControllerBase
 
     [Authorize]
     [HttpPost("change-password")]
+    [EnableRateLimiting(AuthRateLimitPolicy.ChangePassword)]
     public async Task<ApiResponse> ChangePassword(
         [FromBody] ChangePasswordRequest request)
     {
@@ -147,6 +155,7 @@ public class AuthController : ControllerBase
 
     [Authorize]
     [HttpPost("logout")]
+    [EnableRateLimiting(AuthRateLimitPolicy.Logout)]
     public async Task<ApiResponse> Logout(
         [FromBody] RefreshTokenRequest request)
     {
@@ -174,14 +183,16 @@ public class AuthController : ControllerBase
             Message = "Logged out successfully."
         };
     }
+
     [Authorize]
     [HttpGet("me")]
+    [EnableRateLimiting(AuthRateLimitPolicy.Me)]
     public ApiResponse<object> Me()
     {
         var userId = _authHelper.UserId;
         var username = _authHelper.UserName;
         var userRole = _authHelper.UserRole;
-        
+
         return new ApiResponse<object>(
             true,
             "User retrieved successfully.",

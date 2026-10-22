@@ -56,7 +56,10 @@ public enum ErrorMessages
      NoAssignedEmployees = 41,
     InvalidPagination = 42,
     EmployeeAlreadyAssigned=43,
-    EmployeeNotFound=44
+    EmployeeNotFound=44,
+    BranchIdsIsRequired=45,
+    WarehouseManagerIdIsRequired= 46,
+    BranchAlreadyAssigned = 47
 
 
 

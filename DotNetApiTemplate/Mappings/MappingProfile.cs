@@ -1,9 +1,12 @@
-﻿using AutoMapper;
+﻿
+using AutoMapper;
 using DotNetApiTemplate.Models.Data;
-using SupermarketERP.Models.Data.Branch;
+using SupermarketERP.Models.Data;
 using SupermarketERP.Models.Request.Branch;
+using SupermarketERP.Models.Request.Warehouse;
+using SupermarketERP.Models.Response;
 using SupermarketERP.Models.Response.BranchManagerResponse;
-using SupermarketERP.Models.Response.EmployeeResponse;
+using SupermarketERP.Models.Response.Warehouse;
 
 namespace DotNetApiTemplate.Mappings
 {
@@ -48,6 +51,30 @@ namespace DotNetApiTemplate.Mappings
                     opt => opt.MapFrom(src => src.User.UserName));
 
             #endregion
+
+            #region WAREHOUSES
+
+            CreateMap<CreateWarehouseRequest, Warehouse>()
+                .ForMember(dest => dest.Code, opt => opt.Ignore())
+                .ForMember(dest => dest.Branches, opt => opt.Ignore())
+                .ForMember(dest => dest.WarehouseManager, opt => opt.Ignore());
+
+            CreateMap<Warehouse, WarehouseResponse>()
+                .ForMember(dest => dest.WarehouseManager,
+                    opt => opt.MapFrom(src =>
+                        src.WarehouseManager != null
+                            ? src.WarehouseManager.Employee
+                            : null))
+                .ForMember(dest => dest.WarehouseManagerId,
+                    opt => opt.MapFrom(src =>
+                        src.WarehouseManager != null
+                            ? (Guid?)src.WarehouseManager.EmployeeId
+                            : null))
+                .ForMember(dest => dest.IsManager,
+                    opt => opt.Ignore());
+
+            #endregion
+
         }
     }
 }

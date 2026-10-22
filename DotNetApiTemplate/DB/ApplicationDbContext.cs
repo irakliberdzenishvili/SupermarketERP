@@ -1,12 +1,11 @@
-﻿using DotNetApiTemplate.Interfaces;
+﻿
+using DotNetApiTemplate.Interfaces;
 using DotNetApiTemplate.Models;
 using DotNetApiTemplate.Models.Data;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using SupermarketERP.Models.Data;
-using SupermarketERP.Models.Data.Branch;
 using System.Linq.Expressions;
-using System.Reflection.Emit;
 
 namespace DotNetApiTemplate.DB;
 
@@ -21,13 +20,13 @@ public class ApplicationDbContext : IdentityDbContext<User>
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<Branch> Branches => Set<Branch>();
     public DbSet<Employee> Employees => Set<Employee>();
-
+    public DbSet<Warehouse> Warehouses => Set<Warehouse>();
+    public DbSet<WarehouseManager> WarehouseManagers => Set<WarehouseManager>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
 
-        // Global soft-delete filter
         foreach (var entityType in builder.Model.GetEntityTypes())
         {
             if (!typeof(ISoftDeletable)
@@ -51,18 +50,17 @@ public class ApplicationDbContext : IdentityDbContext<User>
                 .HasQueryFilter(lambda);
         }
 
-        // Refresh tokens
-        builder.Entity<RefreshToken>()
-            .HasIndex(x => x.TokenHash)
-            .IsUnique();
+        builder.Entity<RefreshToken>(entity =>
+        {
+            entity.HasIndex(x => x.TokenHash)
+                .IsUnique();
 
-        builder.Entity<RefreshToken>()
-            .HasOne(x => x.User)
-            .WithMany()
-            .HasForeignKey(x => x.UserId)
-            .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(x => x.User)
+                .WithMany()
+                .HasForeignKey(x => x.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
 
-        // Branch configuration
         builder.Entity<Branch>(entity =>
         {
             entity.HasIndex(b => b.BranchManagerId)
@@ -74,13 +72,48 @@ public class ApplicationDbContext : IdentityDbContext<User>
                 .HasForeignKey(b => b.BranchManagerId)
                 .OnDelete(DeleteBehavior.Restrict)
                 .IsRequired(false);
+
+            entity.HasOne(b => b.Warehouse)
+                .WithMany(w => w.Branches)
+                .HasForeignKey(b => b.WarehouseId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false);
+
+            entity.HasIndex(b => b.WarehouseId);
         });
 
-        // Employee -> Branch relationship
-        builder.Entity<Employee>()
-            .HasOne(e => e.Branch)
-            .WithMany(b => b.Employees)
-            .HasForeignKey(e => e.BranchId)
-            .OnDelete(DeleteBehavior.Restrict);
+        // Employee configuration
+        builder.Entity<Employee>(entity =>
+        {
+            entity.HasOne(e => e.Branch)
+                .WithMany(b => b.Employees)
+                .HasForeignKey(e => e.BranchId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<Warehouse>(entity =>
+        {
+            entity.HasIndex(w => w.Code)
+                .IsUnique();
+
+            entity.HasOne(w => w.WarehouseManager)
+                .WithOne(wm => wm.Warehouse)
+                .HasForeignKey<WarehouseManager>(wm => wm.WarehouseId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<WarehouseManager>(entity =>
+        {
+            entity.HasIndex(wm => wm.EmployeeId)
+                .IsUnique();
+
+            entity.HasIndex(wm => wm.WarehouseId)
+                .IsUnique();
+
+            entity.HasOne(wm => wm.Employee)
+                .WithMany()
+                .HasForeignKey(wm => wm.EmployeeId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
     }
 }

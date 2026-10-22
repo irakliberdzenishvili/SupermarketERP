@@ -12,11 +12,9 @@ using SupermarketERP.Constants;
 using SupermarketERP.Helpers;
 using SupermarketERP.Interfaces;
 using SupermarketERP.Models.Data;
-using SupermarketERP.Models.Data.Branch;
-using SupermarketERP.Models.Request.AssignEmployeeRequest;
+using SupermarketERP.Models.Request;
 using SupermarketERP.Models.Request.Branch;
-using SupermarketERP.Models.Request.Employee;
-using SupermarketERP.Models.Response.EmployeeResponse;
+using SupermarketERP.Models.Response;
 
 namespace SupermarketERP.Services;
 

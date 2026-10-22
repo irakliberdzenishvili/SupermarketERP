@@ -1,7 +1,7 @@
 ﻿
 
+using SupermarketERP.Models.Response;
 using SupermarketERP.Models.Response.BranchManagerResponse;
-using SupermarketERP.Models.Response.EmployeeResponse;
 
 public class BranchResponse
 {

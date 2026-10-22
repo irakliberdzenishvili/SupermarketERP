@@ -2,10 +2,11 @@
 using DotNetApiTemplate.Interfaces;
 using DotNetApiTemplate.Models.Data;
 using Microsoft.EntityFrameworkCore;
-using SupermarketERP.Models.Data.Branch;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
+
+namespace SupermarketERP.Models.Data;
 
 [Index(nameof(UserId), IsUnique = true)]
 public class Employee : ISoftDeletable
