@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using SupermarketERP.Constants;
 using SupermarketERP.Interfaces;
+using SupermarketERP.Models.Data;
 using SupermarketERP.Models.Request.Warehouse;
 using SupermarketERP.Models.Response.Warehouse;
 using SupermarketERP.Security;
@@ -53,5 +54,14 @@ public class WarehousesController(
     [FromRoute] string code)
     {
         return await warehouseService.GetWarehouseByCode(code);
+    }
+
+    [HttpPatch("{id:guid}/status")]
+    [EnableRateLimiting(WarehouseRateLimitPolicy.Update)]
+    public async Task<ApiResponse<WarehouseResponse>> ChangeWarehouseStatus(
+    [FromRoute] Guid id,
+    [FromBody] ChangeWarehouseStatusRequest request)
+    {
+        return await warehouseService.ChangeWarehouseStatus(id, request);
     }
 }

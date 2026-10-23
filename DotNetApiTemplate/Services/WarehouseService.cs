@@ -24,7 +24,20 @@ namespace SupermarketERP.Services
     {
         private string CurrentUserId => authHelper.UserId;
         private string CurrentUserRole => authHelper.UserRole;
+        private Guid? CurrentEmployeeId =>  GetCurrentEmployeeId();
 
+         private Guid? GetCurrentEmployeeId()
+        {
+                Guid? currentEmployeeId = db.Employees
+        .AsNoTracking()
+        .Where(e => e.UserId == CurrentUserId
+            && e.IsActive
+            && !e.IsDeleted)
+        .Select(e => (Guid?)e.Id)
+        .FirstOrDefault();
+
+            return currentEmployeeId;
+        }
         private async Task<bool> IsAdmin()
         {
             var user = await userManager.FindByIdAsync(CurrentUserId);
@@ -81,23 +94,9 @@ namespace SupermarketERP.Services
                 .Take(pageSize)
                 .ToListAsync();
 
-            Guid? currentEmployeeId = null;
-
-            var currentUserId = authHelper.UserId;
-
-            if (!string.IsNullOrWhiteSpace(currentUserId))
-            {
-                currentEmployeeId = await db.Employees
-                    .AsNoTracking()
-                    .Where(e =>
-                        e.UserId == currentUserId &&
-                        e.IsActive)
-                    .Select(e => (Guid?)e.Id)
-                    .FirstOrDefaultAsync();
-            }
 
             var mappedWarehouses = pagedWarehouses
-            .Select(warehouse => MapWarehouse(warehouse, currentEmployeeId))
+            .Select(warehouse => MapWarehouse(warehouse, CurrentEmployeeId))
             .ToList();
 
             return new PagedApiResponse<WarehouseResponse>(
@@ -231,15 +230,10 @@ namespace SupermarketERP.Services
                         .ThenInclude(e => e.User)
                 .FirstAsync(w => w.Id == warehouse.Id);
 
-            Guid? currentEmployeeId = await db.Employees
-                .AsNoTracking()
-                .Where(e => e.UserId == CurrentUserId && e.IsActive)
-                .Select(e => (Guid?)e.Id)
-                .FirstOrDefaultAsync();
 
             var mappedResponse = MapWarehouse(
                 createdWarehouse,
-                currentEmployeeId);
+                CurrentEmployeeId);
 
             return new ApiResponse<WarehouseResponse>
             {
@@ -259,14 +253,6 @@ namespace SupermarketERP.Services
                 throw new UserFriendlyException(ErrorMessages.Forbidden);
             }
 
-            Guid? currentEmployeeId = await db.Employees
-        .AsNoTracking()
-        .Where(e => e.UserId == CurrentUserId
-            && e.IsActive
-            && !e.IsDeleted)
-        .Select(e => (Guid?)e.Id)
-        .FirstOrDefaultAsync();
-
             var query =  db.Warehouses
                 .AsNoTracking()
                 .Include(x => x.WarehouseManager)
@@ -278,12 +264,12 @@ namespace SupermarketERP.Services
             if (!isAdmin)
             {
 
-                if (!currentEmployeeId.HasValue)
+                if (!CurrentEmployeeId.HasValue)
                 {
                     throw new UserFriendlyException(ErrorMessages.EmployeeNotFound);
                 }
 
-                query = query.Where(w => w.WarehouseManager != null && w.WarehouseManager.EmployeeId == currentEmployeeId);
+                query = query.Where(w => w.WarehouseManager != null && w.WarehouseManager.EmployeeId == CurrentEmployeeId);
             }
 
             var warehouse = await query.FirstOrDefaultAsync();
@@ -293,7 +279,7 @@ namespace SupermarketERP.Services
                 throw new UserFriendlyException(ErrorMessages.WarehouseNotFound);
             }
 
-            var mappedResponse = MapWarehouse(warehouse, currentEmployeeId);
+            var mappedResponse = MapWarehouse(warehouse, CurrentEmployeeId);
 
             return new ApiResponse<WarehouseResponse>
             {
@@ -313,14 +299,6 @@ namespace SupermarketERP.Services
                 throw new UserFriendlyException(ErrorMessages.Forbidden);
             }
 
-            Guid? currentEmployeeId = await db.Employees
-        .AsNoTracking()
-        .Where(e => e.UserId == CurrentUserId
-            && e.IsActive
-            && !e.IsDeleted)
-        .Select(e => (Guid?)e.Id)
-        .FirstOrDefaultAsync();
-
             var query =  db.Warehouses
                 .AsNoTracking()
                 .Include(b => b.WarehouseManager)
@@ -332,13 +310,13 @@ namespace SupermarketERP.Services
 
            if (!isAdmin)
             {
-                if (!currentEmployeeId.HasValue)
+                if (!CurrentEmployeeId.HasValue)
                 {
                     throw new UserFriendlyException(ErrorMessages.EmployeeNotFound);
                 }
 
 
-                query = query.Where(w => w.WarehouseManager != null && w.WarehouseManager.EmployeeId == currentEmployeeId);
+                query = query.Where(w => w.WarehouseManager != null && w.WarehouseManager.EmployeeId == CurrentEmployeeId);
             }
 
             var warehouse = await query.FirstOrDefaultAsync();
@@ -348,13 +326,61 @@ namespace SupermarketERP.Services
                 throw new UserFriendlyException(ErrorMessages.WarehouseNotFound);
             }
 
-            var mappedResponse = MapWarehouse(warehouse, currentEmployeeId);
+            var mappedResponse = MapWarehouse(warehouse, CurrentEmployeeId);
 
             return new ApiResponse<WarehouseResponse>
             {
                 Data = mappedResponse,
                 IsSuccess = true,
                 Message = "Warehouse Retrieved"
+            };
+        }
+
+        public async Task<ApiResponse<WarehouseResponse>> ChangeWarehouseStatus(
+    Guid warehouseId,
+    ChangeWarehouseStatusRequest request)
+        {
+            if (!await IsAdmin())
+            {
+                throw new UserFriendlyException(ErrorMessages.Forbidden);
+            }
+
+            var warehouse = await db.Warehouses
+                .Include(w => w.WarehouseManager)
+                .ThenInclude(e => e.Employee)
+                .FirstOrDefaultAsync(w =>
+                    w.Id == warehouseId && !w.IsDeleted);
+
+            if (warehouse == null)
+            {
+                throw new UserFriendlyException(
+                    ErrorMessages.WarehouseNotFound);
+            }
+
+            if (request.IsActive)
+            {
+                var hasManager = await db.WarehouseManagers
+                    .AnyAsync(wm => wm.WarehouseId == warehouseId);
+
+                if (!hasManager)
+                {
+                    throw new UserFriendlyException(
+                        ErrorMessages.WarehouseManagerIsRequired);
+                }
+            }
+
+            warehouse.IsActive = request.IsActive;
+            warehouse.UpdatedAt = DateTime.UtcNow;
+
+            await db.SaveChangesAsync();
+
+            return new ApiResponse<WarehouseResponse>
+            {
+                Data = MapWarehouse(warehouse, null),
+                IsSuccess = true,
+                Message = warehouse.IsActive
+                    ? "Warehouse activated successfully."
+                    : "Warehouse deactivated successfully."
             };
         }
     }

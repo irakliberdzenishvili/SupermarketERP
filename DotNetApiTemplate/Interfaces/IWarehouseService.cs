@@ -14,5 +14,7 @@ namespace SupermarketERP.Interfaces
 
         Task<ApiResponse<WarehouseResponse>> GetWarehouseByCode(string code);
 
+        Task<ApiResponse<WarehouseResponse>> ChangeWarehouseStatus(Guid warehouseId, ChangeWarehouseStatusRequest request);
+
     }
 }

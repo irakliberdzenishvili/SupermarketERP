@@ -60,7 +60,9 @@ public enum ErrorMessages
     BranchIdsIsRequired=45,
     WarehouseManagerIdIsRequired= 46,
     BranchAlreadyAssigned = 47,
-    WarehouseNotFound = 48
+    WarehouseNotFound = 48,
+    WarehouseManagerIsRequired = 49,
+    WarehouseNeedsToHaveAtLeastOneEmployee = 50
 
 
 
