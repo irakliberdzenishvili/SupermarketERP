@@ -2,7 +2,7 @@
 
 namespace SupermarketERP.Models.Request
 { 
-    public class UnassignEmployeeRequest
+    public class UnassignBranchWorkerRequest
     {
         [Required]
         public string UserId { get; set; } = string.Empty;

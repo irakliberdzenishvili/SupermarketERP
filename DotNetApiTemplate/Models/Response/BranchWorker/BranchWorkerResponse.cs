@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SupermarketERP.Models.Response;
 
-public class EmployeeResponse
+public class BranchWorkerResponse
 {
     public Guid Id { get; set; }
 

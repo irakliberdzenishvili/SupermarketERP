@@ -38,22 +38,29 @@ public class Branch : ISoftDeletable
 
     public bool IsActive { get; set; } = true;
 
+    public bool IsDeleted { get; set; } = false;
+
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public DateTime? UpdatedAt { get; set; }
 
-    public bool IsDeleted { get; set; } = false;
+    // BRANCH MANAGER
 
     public Guid? BranchManagerId { get; set; }
 
     [ForeignKey(nameof(BranchManagerId))]
-    public Employee? BranchManager { get; set; }
+    [InverseProperty(nameof(BranchWorker.ManagedBranches))]
+    public BranchWorker? BranchManager { get; set; }
 
-    public ICollection<Employee> Employees { get; set; }
-        = new List<Employee>();
+
+    [InverseProperty(nameof(BranchWorker.Branch))]
+    public ICollection<BranchWorker> Workers { get; set; }
+        = new List<BranchWorker>();
+
 
     public Guid? WarehouseId { get; set; }
 
-    public Warehouse Warehouse { get; set; }
-
+    [ForeignKey(nameof(WarehouseId))]
+    [InverseProperty(nameof(Warehouse.Branches))]
+    public Warehouse? Warehouse { get; set; }
 }

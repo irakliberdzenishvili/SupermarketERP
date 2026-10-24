@@ -23,7 +23,7 @@ public class BranchResponse
 
     public string? BranchManagerId { get; set; }
 
-    public List<EmployeeResponse> Employees { get; set; } = [];
+    public List<BranchWorkerResponse> Workers { get; set; } = [];
     public BranchManagerResponse? Manager { get; set; }
 
     public DateTime CreatedAt { get; set; }

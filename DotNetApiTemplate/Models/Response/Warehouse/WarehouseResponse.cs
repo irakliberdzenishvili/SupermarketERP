@@ -36,7 +36,7 @@ namespace SupermarketERP.Models.Response.Warehouse
 
         public Guid? WarehouseManagerId { get; set; }
 
-        public EmployeeResponse? WarehouseManager { get; set; }
+        public BranchWorkerResponse? WarehouseManager { get; set; }
 
         public bool IsManager { get; set; } = false;
 

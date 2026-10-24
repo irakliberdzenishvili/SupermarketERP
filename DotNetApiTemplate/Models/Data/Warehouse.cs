@@ -2,6 +2,7 @@
 using DotNetApiTemplate.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SupermarketERP.Models.Data;
 
@@ -50,6 +51,12 @@ public class Warehouse : ISoftDeletable
 
     public WarehouseManager? WarehouseManager { get; set; }
 
+    public ICollection<WarehouseWorker> Workers { get; set; }
+        = new List<WarehouseWorker>();
+
+    [InverseProperty(nameof(Branch.Warehouse))]
     public ICollection<Branch> Branches { get; set; }
-        = new List<Branch>();
+    = new List<Branch>();
+
+
 }

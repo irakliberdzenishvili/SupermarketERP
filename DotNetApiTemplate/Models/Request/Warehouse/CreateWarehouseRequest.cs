@@ -1,4 +1,4 @@
-﻿using SupermarketERP.Models.Data;
+﻿
 using System.ComponentModel.DataAnnotations;
 
 namespace SupermarketERP.Models.Request.Warehouse;
@@ -25,10 +25,13 @@ public class CreateWarehouseRequest
     [StringLength(254)]
     public string? Email { get; set; }
 
-    [Required]
-    public Guid WarehouseManagerId { get; set; }
+    public string? Description { get; set; }
+
+    public bool IsActive { get; set; } = true;
 
     [Required]
-    public List<Guid> BranchIds { get; set; } = [];
+    public string WarehouseManagerUserId { get; set; }
+        = string.Empty;
 
+    public List<Guid> BranchIds { get; set; } = new();
 }

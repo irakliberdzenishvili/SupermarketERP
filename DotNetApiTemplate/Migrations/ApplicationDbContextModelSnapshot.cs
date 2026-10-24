@@ -326,13 +326,13 @@ namespace DotNetApiTemplate.Migrations
                     b.ToTable("Branches");
                 });
 
-            modelBuilder.Entity("SupermarketERP.Models.Data.Employee", b =>
+            modelBuilder.Entity("SupermarketERP.Models.Data.BranchWorker", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("BranchId")
+                    b.Property<Guid?>("BranchId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
@@ -364,6 +364,9 @@ namespace DotNetApiTemplate.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("UserId1")
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("BranchId");
@@ -371,7 +374,11 @@ namespace DotNetApiTemplate.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("Employees");
+                    b.HasIndex("UserId1")
+                        .IsUnique()
+                        .HasFilter("[UserId1] IS NOT NULL");
+
+                    b.ToTable("BranchWorkers");
                 });
 
             modelBuilder.Entity("SupermarketERP.Models.Data.Warehouse", b =>
@@ -444,21 +451,73 @@ namespace DotNetApiTemplate.Migrations
                     b.Property<DateTime>("AssignedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("EmployeeId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<Guid>("WarehouseId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EmployeeId")
+                    b.HasIndex("UserId")
                         .IsUnique();
 
                     b.HasIndex("WarehouseId")
                         .IsUnique();
 
                     b.ToTable("WarehouseManagers");
+                });
+
+            modelBuilder.Entity("SupermarketERP.Models.Data.WarehouseWorker", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("HireDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid>("WarehouseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.HasIndex("WarehouseId");
+
+                    b.ToTable("WarehouseWorkers");
                 });
 
             modelBuilder.Entity("DotNetApiTemplate.Models.RefreshToken", b =>
@@ -525,34 +584,37 @@ namespace DotNetApiTemplate.Migrations
 
             modelBuilder.Entity("SupermarketERP.Models.Data.Branch", b =>
                 {
-                    b.HasOne("SupermarketERP.Models.Data.Employee", "BranchManager")
-                        .WithMany()
+                    b.HasOne("SupermarketERP.Models.Data.BranchWorker", "BranchManager")
+                        .WithMany("ManagedBranches")
                         .HasForeignKey("BranchManagerId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("SupermarketERP.Models.Data.Warehouse", "Warehouse")
                         .WithMany("Branches")
                         .HasForeignKey("WarehouseId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("BranchManager");
 
                     b.Navigation("Warehouse");
                 });
 
-            modelBuilder.Entity("SupermarketERP.Models.Data.Employee", b =>
+            modelBuilder.Entity("SupermarketERP.Models.Data.BranchWorker", b =>
                 {
                     b.HasOne("SupermarketERP.Models.Data.Branch", "Branch")
-                        .WithMany("Employees")
+                        .WithMany("Workers")
                         .HasForeignKey("BranchId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("DotNetApiTemplate.Models.Data.User", "User")
-                        .WithOne("Employee")
-                        .HasForeignKey("SupermarketERP.Models.Data.Employee", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.HasOne("DotNetApiTemplate.Models.Data.User", null)
+                        .WithOne("Employee")
+                        .HasForeignKey("SupermarketERP.Models.Data.BranchWorker", "UserId1");
 
                     b.Navigation("Branch");
 
@@ -561,19 +623,38 @@ namespace DotNetApiTemplate.Migrations
 
             modelBuilder.Entity("SupermarketERP.Models.Data.WarehouseManager", b =>
                 {
-                    b.HasOne("SupermarketERP.Models.Data.Employee", "Employee")
+                    b.HasOne("DotNetApiTemplate.Models.Data.User", "User")
                         .WithMany()
-                        .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("SupermarketERP.Models.Data.Warehouse", "Warehouse")
                         .WithOne("WarehouseManager")
                         .HasForeignKey("SupermarketERP.Models.Data.WarehouseManager", "WarehouseId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.Navigation("Employee");
+                    b.Navigation("User");
+
+                    b.Navigation("Warehouse");
+                });
+
+            modelBuilder.Entity("SupermarketERP.Models.Data.WarehouseWorker", b =>
+                {
+                    b.HasOne("DotNetApiTemplate.Models.Data.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("SupermarketERP.Models.Data.Warehouse", "Warehouse")
+                        .WithMany("Workers")
+                        .HasForeignKey("WarehouseId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("User");
 
                     b.Navigation("Warehouse");
                 });
@@ -585,7 +666,12 @@ namespace DotNetApiTemplate.Migrations
 
             modelBuilder.Entity("SupermarketERP.Models.Data.Branch", b =>
                 {
-                    b.Navigation("Employees");
+                    b.Navigation("Workers");
+                });
+
+            modelBuilder.Entity("SupermarketERP.Models.Data.BranchWorker", b =>
+                {
+                    b.Navigation("ManagedBranches");
                 });
 
             modelBuilder.Entity("SupermarketERP.Models.Data.Warehouse", b =>
@@ -593,6 +679,8 @@ namespace DotNetApiTemplate.Migrations
                     b.Navigation("Branches");
 
                     b.Navigation("WarehouseManager");
+
+                    b.Navigation("Workers");
                 });
 #pragma warning restore 612, 618
         }

@@ -10,6 +10,6 @@ namespace DotNetApiTemplate.Models.Data
         public string LastName { get; set; } = string.Empty;
 
         [JsonIgnore]
-        public Employee? Employee { get; set; }
+        public BranchWorker? Employee { get; set; }
     }
 }

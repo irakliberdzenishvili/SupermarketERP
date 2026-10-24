@@ -90,44 +90,44 @@ namespace SupermarketERP.Controllers
         [HttpGet("{id:guid}/employees")]
         [Authorize(Roles = $"{Roles.Admin},{Roles.BranchManager}")]
         [EnableRateLimiting(BranchRateLimitPolicy.Get)]
-        public async Task<PagedApiResponse<EmployeeResponse>> GetAssignedEmployees(
+        public async Task<PagedApiResponse<BranchWorkerResponse>> GetAssignedEmployees(
             [FromRoute] Guid id,
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10)
         {
-            return await branchService.GetAssignedEmployees(
+            return await branchService.GetAssignedBranchWorkers(
                 id, pageNumber, pageSize);
         }
 
         [HttpPost("{id:guid}/employees/{userId:guid}")]
         [Authorize(Roles = $"{Roles.Admin},{Roles.BranchManager}")]
         [EnableRateLimiting(BranchRateLimitPolicy.AssignEmployee)]
-        public async Task<ApiResponse<EmployeeResponse>> AssignEmployeeToBranch(
+        public async Task<ApiResponse<BranchWorkerResponse>> AssignEmployeeToBranch(
             [FromRoute] Guid id,
             [FromRoute] Guid userId)
         {
-            var request = new AssignEmployeeRequest
+            var request = new AssignBranchWorkerRequest
             {
                 UserId = userId.ToString()
             };
 
-            return await branchService.AssignEmployeeToBranch(
+            return await branchService.AssignBranchWorkerToBranch(
                 id, request);
         }
 
         [HttpDelete("{id:guid}/employees/{userId:guid}")]
         [Authorize(Roles = $"{Roles.Admin},{Roles.BranchManager}")]
         [EnableRateLimiting(BranchRateLimitPolicy.UnassignEmployee)]
-        public async Task<ApiResponse<EmployeeResponse>> UnassignEmployeeFromBranch(
+        public async Task<ApiResponse<BranchWorkerResponse>> UnassignEmployeeFromBranch(
             [FromRoute] Guid id,
             [FromRoute] Guid userId)
         {
-            var request = new UnassignEmployeeRequest
+            var request = new UnassignBranchWorkerRequest
             {
                 UserId = userId.ToString()
             };
 
-            return await branchService.UnassignEmployeeFromBranch(
+            return await branchService.UnassignBranchWorkerFromBranch(
                 id, request);
         }
     }

@@ -1,19 +1,24 @@
 ﻿
+using DotNetApiTemplate.Interfaces;
+using DotNetApiTemplate.Models.Data;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SupermarketERP.Models.Data;
 
-public class WarehouseManager
+[Index(nameof(UserId), IsUnique = true)]
+[Index(nameof(WarehouseId), IsUnique = true)]
+public class WarehouseManager : ISoftDeletable
 {
     [Key]
     public Guid Id { get; set; } = Guid.CreateVersion7();
 
     [Required]
-    public Guid EmployeeId { get; set; }
+    public string UserId { get; set; } = string.Empty;
 
-    [ForeignKey(nameof(EmployeeId))]
-    public Employee Employee { get; set; } = null!;
+    [ForeignKey(nameof(UserId))]
+    public User User { get; set; } = null!;
 
     [Required]
     public Guid WarehouseId { get; set; }
@@ -22,6 +27,5 @@ public class WarehouseManager
     public Warehouse Warehouse { get; set; } = null!;
 
     public DateTime AssignedAt { get; set; } = DateTime.UtcNow;
-
-
+    public bool IsDeleted { get; set; }
 }
