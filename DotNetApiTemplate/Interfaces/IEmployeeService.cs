@@ -14,5 +14,7 @@ namespace SupermarketERP.Interfaces
     int pageSize = 10);
 
         Task<ApiResponse<EmployeeResponse>> CreateEmployee(CreateEmployeeRequest request);
+
+        Task<ApiResponse<EmployeeResponse>> GetEmployeeById(Guid resourceId);
     }
 }

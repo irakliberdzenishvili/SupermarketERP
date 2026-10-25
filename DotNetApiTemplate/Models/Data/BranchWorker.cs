@@ -1,5 +1,4 @@
-﻿
-using DotNetApiTemplate.Interfaces;
+﻿using DotNetApiTemplate.Interfaces;
 using DotNetApiTemplate.Models.Data;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
@@ -13,7 +12,6 @@ public class BranchWorker : ISoftDeletable
     [Key]
     public Guid Id { get; set; } = Guid.CreateVersion7();
 
-    // IDENTITY USER
 
     [Required]
     public string UserId { get; set; } = string.Empty;
@@ -21,7 +19,6 @@ public class BranchWorker : ISoftDeletable
     [ForeignKey(nameof(UserId))]
     public User User { get; set; } = null!;
 
-    // PERSONAL INFORMATION
 
     [Required]
     [StringLength(100)]
@@ -31,7 +28,6 @@ public class BranchWorker : ISoftDeletable
     [StringLength(100)]
     public string LastName { get; set; } = string.Empty;
 
-    // ASSIGNED BRANCH
 
     public Guid? BranchId { get; set; }
 
@@ -39,10 +35,7 @@ public class BranchWorker : ISoftDeletable
     [InverseProperty(nameof(Branch.Workers))]
     public Branch? Branch { get; set; }
 
-    
-    [InverseProperty(nameof(Branch.BranchManager))]
-    public ICollection<Branch> ManagedBranches { get; set; }
-        = new List<Branch>();
+
 
     public DateTime HireDate { get; set; } = DateTime.UtcNow;
 
@@ -53,4 +46,5 @@ public class BranchWorker : ISoftDeletable
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public DateTime? UpdatedAt { get; set; }
+
 }

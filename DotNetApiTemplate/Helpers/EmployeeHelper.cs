@@ -1,5 +1,4 @@
-﻿
-using AutoMapper;
+﻿using AutoMapper;
 using DotNetApiTemplate.DB;
 using DotNetApiTemplate.Models.Data;
 using DotNetApiTemplate.Models.Response;
@@ -44,6 +43,7 @@ public class EmployeeHelper
         this.mapper = mapper;
     }
 
+    #region GET USER
 
     public async Task<User> GetUserForProvisioning(string userId)
     {
@@ -64,6 +64,9 @@ public class EmployeeHelper
         return user;
     }
 
+    #endregion
+
+    #region VALIDATE EMPLOYEE REQUEST
 
     public async Task ValidateEmployeeRequest(
         CreateEmployeeRequest request)
@@ -99,24 +102,30 @@ public class EmployeeHelper
                     ErrorMessages.InvalidRequest);
             }
 
-            var branch = await db.Branches
+            var branchExists = await db.Branches
                 .AsNoTracking()
-                .FirstOrDefaultAsync(b =>
+                .AnyAsync(b =>
                     b.Id == request.BranchId.Value &&
                     b.IsActive &&
                     !b.IsDeleted);
 
-            if (branch == null)
+            if (!branchExists)
             {
                 throw new UserFriendlyException(
                     ErrorMessages.BranchNotFound);
             }
 
-            if (request.Role == Roles.BranchManager &&
-                branch.BranchManagerId.HasValue)
+            if (request.Role == Roles.BranchManager)
             {
-                throw new UserFriendlyException(
-                    ErrorMessages.ManagerAlreadyAssigned);
+                var managerExists = await db.BranchManagers
+                    .AnyAsync(bm =>
+                        bm.BranchId == request.BranchId.Value);
+
+                if (managerExists)
+                {
+                    throw new UserFriendlyException(
+                        ErrorMessages.ManagerAlreadyAssigned);
+                }
             }
         }
         else if (isWarehouseRole)
@@ -129,6 +138,7 @@ public class EmployeeHelper
             }
 
             var warehouseExists = await db.Warehouses
+                .AsNoTracking()
                 .AnyAsync(w =>
                     w.Id == request.WarehouseId.Value &&
                     w.IsActive &&
@@ -143,7 +153,6 @@ public class EmployeeHelper
             if (request.Role == Roles.WarehouseManager)
             {
                 var managerExists = await db.WarehouseManagers
-                    .IgnoreQueryFilters()
                     .AnyAsync(wm =>
                         wm.WarehouseId == request.WarehouseId.Value);
 
@@ -154,7 +163,7 @@ public class EmployeeHelper
                 }
             }
         }
-        else if (isAdminRole)
+        else
         {
             if (request.BranchId.HasValue ||
                 request.WarehouseId.HasValue)
@@ -165,61 +174,87 @@ public class EmployeeHelper
         }
     }
 
+    #endregion
+
+    #region VALIDATE USER ELIGIBILITY
 
     public async Task ValidateUserEligibility(User user)
     {
         var existingRoles = await userManager.GetRolesAsync(user);
 
-        if (existingRoles.Count > 0)
+        // Allow only a basic User role before provisioning.
+        if (existingRoles.Any(r => r != Roles.User))
         {
             throw new UserFriendlyException(
                 ErrorMessages.UserAlreadyHasRole);
         }
 
-        // Include soft-deleted records because the existing
-        // unique indexes may still prevent inserting new records.
-
-        var hasBranchAssignment = await db.BranchWorkers
+        var hasBranchWorker = await db.BranchWorkers
             .IgnoreQueryFilters()
             .AnyAsync(bw => bw.UserId == user.Id);
 
-        if (hasBranchAssignment)
+        if (hasBranchWorker)
         {
             throw new UserFriendlyException(
                 ErrorMessages.UserAlreadyAssignedToBranch);
         }
 
-        var hasWarehouseAssignment = await db.WarehouseWorkers
+        var hasBranchManager = await db.BranchManagers
+            .AnyAsync(bm => bm.UserId == user.Id);
+
+        if (hasBranchManager)
+        {
+            throw new UserFriendlyException(
+                ErrorMessages.ManagerAlreadyAssigned);
+        }
+
+        var hasWarehouseWorker = await db.WarehouseWorkers
             .IgnoreQueryFilters()
             .AnyAsync(ww => ww.UserId == user.Id);
 
-        if (hasWarehouseAssignment)
+        if (hasWarehouseWorker)
         {
             throw new UserFriendlyException(
                 ErrorMessages.UserAlreadyAssignedToWarehouse);
         }
 
-        var hasWarehouseManagerAssignment = await db.WarehouseManagers
-            .IgnoreQueryFilters()
+        var hasWarehouseManager = await db.WarehouseManagers
             .AnyAsync(wm => wm.UserId == user.Id);
 
-        if (hasWarehouseManagerAssignment)
+        if (hasWarehouseManager)
         {
             throw new UserFriendlyException(
                 ErrorMessages.WarehouseManagerAlreadyAssigned);
         }
     }
 
-    // ASSIGN IDENTITY ROLE
+    #endregion
 
-    public async Task AssignEmployeeRole(User user, string role)
+    #region ASSIGN IDENTITY ROLE
+
+    public async Task AssignEmployeeRole(
+        User user,
+        string role)
     {
         var existingRoles = await userManager.GetRolesAsync(user);
 
-        if (existingRoles.Count > 0)
+        if (existingRoles.Any(r => r != Roles.User))
         {
             throw new UserFriendlyException(
                 ErrorMessages.UserCannotHaveMultipleRoles);
+        }
+
+        if (existingRoles.Contains(Roles.User))
+        {
+            var removeResult = await userManager.RemoveFromRoleAsync(
+                user,
+                Roles.User);
+
+            if (!removeResult.Succeeded)
+            {
+                throw new UserFriendlyException(
+                    ErrorMessages.FailedToAssignRole);
+            }
         }
 
         var result = await userManager.AddToRoleAsync(user, role);
@@ -231,160 +266,227 @@ public class EmployeeHelper
         }
     }
 
-    // ASSIGN WORKPLACE
+    #endregion
+
+    #region ASSIGN WORKPLACE
 
     public async Task AssignWorkplace(
         User user,
         CreateEmployeeRequest request)
     {
-        if (BranchRoles.Contains(request.Role))
+        switch (request.Role)
         {
-            await AssignBranchWorker(user, request);
-        }
-        else if (WarehouseRoles.Contains(request.Role))
-        {
-            await AssignWarehouseEmployee(user, request);
+            case Roles.BranchManager:
+                await AssignBranchManager(user, request);
+                break;
+
+            case Roles.BranchWorker:
+            case Roles.Cashier:
+            case Roles.InventoryManager:
+                await AssignBranchWorker(user, request);
+                break;
+
+            case Roles.WarehouseManager:
+                await AssignWarehouseManager(user, request);
+                break;
+
+            case Roles.WarehouseWorker:
+                await AssignWarehouseWorker(user, request);
+                break;
+
+            case Roles.Admin:
+                // Admin does not require a workplace.
+                break;
+
+            default:
+                throw new UserFriendlyException(
+                    ErrorMessages.InvalidRole);
         }
     }
 
+    #endregion
 
-    private async Task AssignBranchWorker(
+    #region ASSIGN BRANCH MANAGER
+
+    private async Task AssignBranchManager(
         User user,
         CreateEmployeeRequest request)
     {
         var branchId = request.BranchId!.Value;
 
+        var branchExists = await db.Branches
+            .AnyAsync(b =>
+                b.Id == branchId &&
+                b.IsActive &&
+                !b.IsDeleted);
 
-        var hasWarehouseAssignment =
-            await db.WarehouseWorkers
-                .IgnoreQueryFilters()
-                .AnyAsync(ww => ww.UserId == user.Id)
-            ||
-            await db.WarehouseManagers
-                .IgnoreQueryFilters()
-                .AnyAsync(wm => wm.UserId == user.Id);
-
-        if (hasWarehouseAssignment)
+        if (!branchExists)
         {
             throw new UserFriendlyException(
-                ErrorMessages.UserAlreadyAssignedToWarehouse);
+                ErrorMessages.BranchNotFound);
         }
 
-        var existingBranchWorker = await db.BranchWorkers
-            .IgnoreQueryFilters()
-            .AnyAsync(bw => bw.UserId == user.Id);
+        var managerExists = await db.BranchManagers
+            .AnyAsync(bm => bm.BranchId == branchId);
 
-        if (existingBranchWorker)
+        if (managerExists)
         {
             throw new UserFriendlyException(
-                ErrorMessages.UserAlreadyAssignedToBranch);
+                ErrorMessages.ManagerAlreadyAssigned);
         }
+
+        var userAlreadyManager = await db.BranchManagers
+            .AnyAsync(bm => bm.UserId == user.Id);
+
+        if (userAlreadyManager)
+        {
+            throw new UserFriendlyException(
+                ErrorMessages.ManagerAlreadyAssigned);
+        }
+
+        await EnsureNoExistingWorkplace(user.Id);
+
+        var manager = new BranchManager
+        {
+            Id = Guid.CreateVersion7(),
+            UserId = user.Id,
+            BranchId = branchId,
+            AssignedAt = DateTime.UtcNow
+        };
+
+        await db.BranchManagers.AddAsync(manager);
+    }
+
+    #endregion
+
+    #region ASSIGN BRANCH WORKER
+
+    private async Task AssignBranchWorker(
+        User user,
+        CreateEmployeeRequest request)
+    {
+        await EnsureNoExistingWorkplace(user.Id);
 
         var worker = new BranchWorker
         {
+            Id = Guid.CreateVersion7(),
             UserId = user.Id,
             FirstName = user.FirstName,
             LastName = user.LastName,
-            BranchId = branchId
+            BranchId = request.BranchId!.Value,
+            HireDate = DateTime.UtcNow,
+            IsActive = true,
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow
         };
 
         await db.BranchWorkers.AddAsync(worker);
-
-        if (request.Role == Roles.BranchManager)
-        {
-            var branch = await db.Branches
-                .FirstOrDefaultAsync(b =>
-                    b.Id == branchId &&
-                    b.IsActive &&
-                    !b.IsDeleted);
-
-            if (branch == null)
-            {
-                throw new UserFriendlyException(
-                    ErrorMessages.BranchNotFound);
-            }
-
-            if (branch.BranchManagerId.HasValue)
-            {
-                throw new UserFriendlyException(
-                    ErrorMessages.ManagerAlreadyAssigned);
-            }
-
-            branch.BranchManagerId = worker.Id;
-        }
     }
 
+    #endregion
 
-    private async Task AssignWarehouseEmployee(
+    #region ASSIGN WAREHOUSE MANAGER
+
+    private async Task AssignWarehouseManager(
         User user,
         CreateEmployeeRequest request)
     {
         var warehouseId = request.WarehouseId!.Value;
 
+        var managerExists = await db.WarehouseManagers
+            .AnyAsync(wm => wm.WarehouseId == warehouseId);
 
-        var hasBranchAssignment = await db.BranchWorkers
+        if (managerExists)
+        {
+            throw new UserFriendlyException(
+                ErrorMessages.WarehouseManagerAlreadyManagesWarehouse);
+        }
+
+        await EnsureNoExistingWorkplace(user.Id);
+
+        var manager = new WarehouseManager
+        {
+            Id = Guid.CreateVersion7(),
+            UserId = user.Id,
+            WarehouseId = warehouseId
+        };
+
+        await db.WarehouseManagers.AddAsync(manager);
+    }
+
+    #endregion
+
+    #region ASSIGN WAREHOUSE WORKER
+
+    private async Task AssignWarehouseWorker(
+        User user,
+        CreateEmployeeRequest request)
+    {
+        await EnsureNoExistingWorkplace(user.Id);
+
+        var worker = new WarehouseWorker
+        {
+            Id = Guid.CreateVersion7(),
+            UserId = user.Id,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            WarehouseId = request.WarehouseId!.Value
+        };
+
+        await db.WarehouseWorkers.AddAsync(worker);
+    }
+
+    #endregion
+
+    #region CHECK EXISTING WORKPLACE
+
+    private async Task EnsureNoExistingWorkplace(string userId)
+    {
+        var hasBranchWorker = await db.BranchWorkers
             .IgnoreQueryFilters()
-            .AnyAsync(bw => bw.UserId == user.Id);
+            .AnyAsync(w => w.UserId == userId);
 
-        if (hasBranchAssignment)
+        if (hasBranchWorker)
         {
             throw new UserFriendlyException(
                 ErrorMessages.UserAlreadyAssignedToBranch);
         }
 
-        var existingWarehouseWorker = await db.WarehouseWorkers
-            .IgnoreQueryFilters()
-            .AnyAsync(ww => ww.UserId == user.Id);
+        var hasBranchManager = await db.BranchManagers
+            .AnyAsync(m => m.UserId == userId);
 
-        if (existingWarehouseWorker)
+        if (hasBranchManager)
+        {
+            throw new UserFriendlyException(
+                ErrorMessages.ManagerAlreadyAssigned);
+        }
+
+        var hasWarehouseWorker = await db.WarehouseWorkers
+            .IgnoreQueryFilters()
+            .AnyAsync(w => w.UserId == userId);
+
+        if (hasWarehouseWorker)
         {
             throw new UserFriendlyException(
                 ErrorMessages.UserAlreadyAssignedToWarehouse);
         }
 
-        var existingWarehouseManager = await db.WarehouseManagers
-            .IgnoreQueryFilters()
-            .AnyAsync(wm => wm.UserId == user.Id);
+        var hasWarehouseManager = await db.WarehouseManagers
+            .AnyAsync(m => m.UserId == userId);
 
-        if (existingWarehouseManager)
+        if (hasWarehouseManager)
         {
             throw new UserFriendlyException(
                 ErrorMessages.WarehouseManagerAlreadyAssigned);
         }
-
-        if (request.Role == Roles.WarehouseWorker)
-        {
-            db.WarehouseWorkers.Add(new WarehouseWorker
-            {
-                UserId = user.Id,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                WarehouseId = warehouseId
-            });
-        }
-        else if (request.Role == Roles.WarehouseManager)
-        {
-            var managerExists = await db.WarehouseManagers
-                .IgnoreQueryFilters()
-                .AnyAsync(wm => wm.WarehouseId == warehouseId);
-
-            if (managerExists)
-            {
-                throw new UserFriendlyException(
-                    ErrorMessages.WarehouseManagerAlreadyManagesWarehouse);
-            }
-
-            db.WarehouseManagers.Add(new WarehouseManager
-            {
-                UserId = user.Id,
-                WarehouseId = warehouseId
-            });
-        }
     }
 
+    #endregion
 
-    public async Task<ApiResponse<EmployeeResponse>> GetEmployeeResponse(
-        string userId)
+    #region GET EMPLOYEE RESPONSE
+
+    public async Task<ApiResponse<EmployeeResponse>>
+        GetEmployeeResponse(string userId)
     {
         var user = await GetUserForProvisioning(userId);
 
@@ -404,11 +506,13 @@ public class EmployeeHelper
 
         var response = new EmployeeResponse
         {
-            BranchWorkers = mapper.Map<List<BranchWorkerResponse>>(
-                branchWorkers),
+            BranchWorkers =
+                mapper.Map<List<BranchWorkerResponse>>(
+                    branchWorkers),
 
-            WarehouseWorkers = mapper.Map<List<WarehouseWorkerResponse>>(
-                warehouseWorkers)
+            WarehouseWorkers =
+                mapper.Map<List<WarehouseWorkerResponse>>(
+                    warehouseWorkers)
         };
 
         return new ApiResponse<EmployeeResponse>
@@ -418,4 +522,6 @@ public class EmployeeHelper
             Message = "Employee retrieved successfully."
         };
     }
+
+    #endregion
 }

@@ -1,5 +1,4 @@
-﻿
-using DotNetApiTemplate.Interfaces;
+﻿using DotNetApiTemplate.Interfaces;
 using DotNetApiTemplate.Models;
 using DotNetApiTemplate.Models.Data;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -19,17 +18,26 @@ public class ApplicationDbContext : IdentityDbContext<User>
 
     #region DB SETS
 
-    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<RefreshToken> RefreshTokens
+        => Set<RefreshToken>();
 
-    public DbSet<Branch> Branches => Set<Branch>();
+    public DbSet<Branch> Branches
+        => Set<Branch>();
 
-    public DbSet<BranchWorker> BranchWorkers => Set<BranchWorker>();
+    public DbSet<BranchWorker> BranchWorkers
+        => Set<BranchWorker>();
 
-    public DbSet<Warehouse> Warehouses => Set<Warehouse>();
+    public DbSet<BranchManager> BranchManagers
+        => Set<BranchManager>();
 
-    public DbSet<WarehouseWorker> WarehouseWorkers => Set<WarehouseWorker>();
+    public DbSet<Warehouse> Warehouses
+        => Set<Warehouse>();
 
-    public DbSet<WarehouseManager> WarehouseManagers => Set<WarehouseManager>();
+    public DbSet<WarehouseWorker> WarehouseWorkers
+        => Set<WarehouseWorker>();
+
+    public DbSet<WarehouseManager> WarehouseManagers
+        => Set<WarehouseManager>();
 
     #endregion
 
@@ -88,21 +96,10 @@ public class ApplicationDbContext : IdentityDbContext<User>
 
         builder.Entity<Branch>(entity =>
         {
+            // Every branch must have a unique code.
+
             entity.HasIndex(b => b.Code)
                 .IsUnique();
-
-            // One branch has one manager.
-            // One worker can manage only one branch.
-
-            entity.HasIndex(b => b.BranchManagerId)
-                .IsUnique()
-                .HasFilter("[BranchManagerId] IS NOT NULL");
-
-            entity.HasOne(b => b.BranchManager)
-                .WithMany(w => w.ManagedBranches)
-                .HasForeignKey(b => b.BranchManagerId)
-                .OnDelete(DeleteBehavior.NoAction)
-                .IsRequired(false);
 
             // Many branches can belong to one warehouse.
 
@@ -117,6 +114,41 @@ public class ApplicationDbContext : IdentityDbContext<User>
 
         #endregion
 
+        #region BRANCH MANAGERS
+
+        builder.Entity<BranchManager>(entity =>
+        {
+            // One Identity user can manage only one branch.
+
+            entity.HasIndex(bm => bm.UserId)
+                .IsUnique();
+
+            // One branch can have only one manager.
+
+            entity.HasIndex(bm => bm.BranchId)
+                .IsUnique();
+
+            // BranchManager belongs to an Identity user.
+
+            entity.HasOne(bm => bm.User)
+                .WithMany()
+                .HasForeignKey(bm => bm.UserId)
+                .OnDelete(DeleteBehavior.NoAction)
+                .IsRequired();
+
+            // One branch has zero or one manager.
+            // BranchManager owns the foreign key.
+
+            entity.HasOne(bm => bm.Branch)
+                .WithOne(b => b.BranchManager)
+                .HasForeignKey<BranchManager>(
+                    bm => bm.BranchId)
+                .OnDelete(DeleteBehavior.NoAction)
+                .IsRequired();
+        });
+
+        #endregion
+
         #region BRANCH WORKERS
 
         builder.Entity<BranchWorker>(entity =>
@@ -126,12 +158,15 @@ public class ApplicationDbContext : IdentityDbContext<User>
             entity.HasIndex(w => w.UserId)
                 .IsUnique();
 
+            // BranchWorker belongs to an Identity user.
+
             entity.HasOne(w => w.User)
                 .WithMany()
                 .HasForeignKey(w => w.UserId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.NoAction)
+                .IsRequired();
 
-            // One branch has many workers.
+            // One branch can have many workers.
 
             entity.HasOne(w => w.Branch)
                 .WithMany(b => b.Workers)
@@ -148,16 +183,19 @@ public class ApplicationDbContext : IdentityDbContext<User>
 
         builder.Entity<Warehouse>(entity =>
         {
+            // Every warehouse must have a unique code.
+
             entity.HasIndex(w => w.Code)
                 .IsUnique();
 
-            // One warehouse has one warehouse manager.
+            // One warehouse has zero or one manager.
 
             entity.HasOne(w => w.WarehouseManager)
                 .WithOne(wm => wm.Warehouse)
                 .HasForeignKey<WarehouseManager>(
                     wm => wm.WarehouseId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.NoAction)
+                .IsRequired();
         });
 
         #endregion
@@ -171,12 +209,15 @@ public class ApplicationDbContext : IdentityDbContext<User>
             entity.HasIndex(w => w.UserId)
                 .IsUnique();
 
+            // WarehouseWorker belongs to an Identity user.
+
             entity.HasOne(w => w.User)
                 .WithMany()
                 .HasForeignKey(w => w.UserId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.NoAction)
+                .IsRequired();
 
-            // One warehouse has many workers.
+            // One warehouse can have many workers.
 
             entity.HasOne(w => w.Warehouse)
                 .WithMany(wh => wh.Workers)
@@ -192,23 +233,23 @@ public class ApplicationDbContext : IdentityDbContext<User>
 
         builder.Entity<WarehouseManager>(entity =>
         {
-            // One user can manage one warehouse.
+            // One Identity user can manage only one warehouse.
 
             entity.HasIndex(wm => wm.UserId)
                 .IsUnique();
 
-            // One warehouse has one manager.
+            // One warehouse can have only one manager.
 
             entity.HasIndex(wm => wm.WarehouseId)
                 .IsUnique();
 
-            // WarehouseManager references Identity User,
-            // not BranchWorker.
+            // WarehouseManager belongs to an Identity user.
 
             entity.HasOne(wm => wm.User)
                 .WithMany()
                 .HasForeignKey(wm => wm.UserId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.NoAction)
+                .IsRequired();
         });
 
         #endregion

@@ -1,5 +1,4 @@
-﻿
-using DotNetApiTemplate.Interfaces;
+﻿using DotNetApiTemplate.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -40,23 +39,16 @@ public class Branch : ISoftDeletable
 
     public bool IsDeleted { get; set; } = false;
 
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; }
+        = DateTime.UtcNow;
 
     public DateTime? UpdatedAt { get; set; }
 
-    // BRANCH MANAGER
-
-    public Guid? BranchManagerId { get; set; }
-
-    [ForeignKey(nameof(BranchManagerId))]
-    [InverseProperty(nameof(BranchWorker.ManagedBranches))]
-    public BranchWorker? BranchManager { get; set; }
-
+    public BranchManager? BranchManager { get; set; }
 
     [InverseProperty(nameof(BranchWorker.Branch))]
     public ICollection<BranchWorker> Workers { get; set; }
         = new List<BranchWorker>();
-
 
     public Guid? WarehouseId { get; set; }
 

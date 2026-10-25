@@ -31,8 +31,6 @@ public class MappingProfile : Profile
                 opt => opt.Ignore())
             .ForMember(dest => dest.Code,
                 opt => opt.Ignore())
-            .ForMember(dest => dest.BranchManagerId,
-                opt => opt.Ignore())
             .ForMember(dest => dest.BranchManager,
                 opt => opt.Ignore())
             .ForMember(dest => dest.Workers,
@@ -53,8 +51,6 @@ public class MappingProfile : Profile
                 opt => opt.Ignore())
             .ForMember(dest => dest.Code,
                 opt => opt.Ignore())
-            .ForMember(dest => dest.BranchManagerId,
-                opt => opt.Ignore())
             .ForMember(dest => dest.BranchManager,
                 opt => opt.Ignore())
             .ForMember(dest => dest.Workers,
@@ -68,19 +64,33 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.UpdatedAt,
                 opt => opt.Ignore())
             .ForMember(dest => dest.IsDeleted,
+                opt => opt.Ignore())
+            .ForMember(dest => dest.IsActive,
                 opt => opt.Ignore());
+
+        #endregion
+
+        #region BRANCH MANAGERS
+
+        CreateMap<BranchManager, BranchManagerResponse>()
+            .ForMember(dest => dest.Id,
+                opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.Email,
+                opt => opt.MapFrom(src =>
+                    src.User != null
+                        ? src.User.Email
+                        : null))
+            .ForMember(dest => dest.UserName,
+                opt => opt.MapFrom(src =>
+                    src.User != null
+                        ? src.User.UserName
+                        : null));
 
         #endregion
 
         #region BRANCH WORKERS
 
         CreateMap<BranchWorker, BranchWorkerResponse>();
-
-        CreateMap<BranchWorker, BranchManagerResponse>()
-            .ForMember(dest => dest.Email,
-                opt => opt.MapFrom(src => src.User.Email))
-            .ForMember(dest => dest.UserName,
-                opt => opt.MapFrom(src => src.User.UserName));
 
         #endregion
 
@@ -104,10 +114,6 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.IsDeleted,
                 opt => opt.Ignore());
 
-        CreateMap<WarehouseManager, WarehouseWorkerResponse>()
-            .ForMember(dest => dest.Id,
-                opt => opt.MapFrom(src => src.Id));
-
         CreateMap<Warehouse, WarehouseResponse>()
             .ForMember(dest => dest.WarehouseManager,
                 opt => opt.MapFrom(src => src.WarehouseManager))
@@ -120,6 +126,14 @@ public class MappingProfile : Profile
                 opt => opt.Ignore())
             .ForMember(dest => dest.IsAdmin,
                 opt => opt.Ignore());
+
+        #endregion
+
+        #region WAREHOUSE MANAGERS
+
+        CreateMap<WarehouseManager, WarehouseWorkerResponse>()
+            .ForMember(dest => dest.Id,
+                opt => opt.MapFrom(src => src.Id));
 
         #endregion
 

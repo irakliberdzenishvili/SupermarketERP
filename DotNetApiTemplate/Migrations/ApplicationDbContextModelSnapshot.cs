@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace DotNetApiTemplate.Migrations
+namespace SupermarketERP.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     partial class ApplicationDbContextModelSnapshot : ModelSnapshot
@@ -124,7 +124,7 @@ namespace DotNetApiTemplate.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RefreshTokens", (string)null);
+                    b.ToTable("RefreshTokens");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -271,9 +271,6 @@ namespace DotNetApiTemplate.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
 
-                    b.Property<Guid?>("BranchManagerId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("City")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -314,16 +311,45 @@ namespace DotNetApiTemplate.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BranchManagerId")
-                        .IsUnique()
-                        .HasFilter("[BranchManagerId] IS NOT NULL");
-
                     b.HasIndex("Code")
                         .IsUnique();
 
                     b.HasIndex("WarehouseId");
 
-                    b.ToTable("Branches", (string)null);
+                    b.ToTable("Branches");
+                });
+
+            modelBuilder.Entity("SupermarketERP.Models.Data.BranchManager", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("AssignedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("BranchId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BranchId")
+                        .IsUnique();
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("BranchManagers");
                 });
 
             modelBuilder.Entity("SupermarketERP.Models.Data.BranchWorker", b =>
@@ -378,7 +404,7 @@ namespace DotNetApiTemplate.Migrations
                         .IsUnique()
                         .HasFilter("[UserId1] IS NOT NULL");
 
-                    b.ToTable("BranchWorkers", (string)null);
+                    b.ToTable("BranchWorkers");
                 });
 
             modelBuilder.Entity("SupermarketERP.Models.Data.Warehouse", b =>
@@ -439,7 +465,7 @@ namespace DotNetApiTemplate.Migrations
                     b.HasIndex("Code")
                         .IsUnique();
 
-                    b.ToTable("Warehouses", (string)null);
+                    b.ToTable("Warehouses");
                 });
 
             modelBuilder.Entity("SupermarketERP.Models.Data.WarehouseManager", b =>
@@ -469,7 +495,7 @@ namespace DotNetApiTemplate.Migrations
                     b.HasIndex("WarehouseId")
                         .IsUnique();
 
-                    b.ToTable("WarehouseManagers", (string)null);
+                    b.ToTable("WarehouseManagers");
                 });
 
             modelBuilder.Entity("SupermarketERP.Models.Data.WarehouseWorker", b =>
@@ -517,7 +543,7 @@ namespace DotNetApiTemplate.Migrations
 
                     b.HasIndex("WarehouseId");
 
-                    b.ToTable("WarehouseWorkers", (string)null);
+                    b.ToTable("WarehouseWorkers");
                 });
 
             modelBuilder.Entity("DotNetApiTemplate.Models.RefreshToken", b =>
@@ -584,19 +610,31 @@ namespace DotNetApiTemplate.Migrations
 
             modelBuilder.Entity("SupermarketERP.Models.Data.Branch", b =>
                 {
-                    b.HasOne("SupermarketERP.Models.Data.BranchWorker", "BranchManager")
-                        .WithMany("ManagedBranches")
-                        .HasForeignKey("BranchManagerId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
                     b.HasOne("SupermarketERP.Models.Data.Warehouse", "Warehouse")
                         .WithMany("Branches")
                         .HasForeignKey("WarehouseId")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.Navigation("BranchManager");
-
                     b.Navigation("Warehouse");
+                });
+
+            modelBuilder.Entity("SupermarketERP.Models.Data.BranchManager", b =>
+                {
+                    b.HasOne("SupermarketERP.Models.Data.Branch", "Branch")
+                        .WithOne("BranchManager")
+                        .HasForeignKey("SupermarketERP.Models.Data.BranchManager", "BranchId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("DotNetApiTemplate.Models.Data.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("SupermarketERP.Models.Data.BranchWorker", b =>
@@ -613,7 +651,7 @@ namespace DotNetApiTemplate.Migrations
                         .IsRequired();
 
                     b.HasOne("DotNetApiTemplate.Models.Data.User", null)
-                        .WithOne("Employee")
+                        .WithOne("BranchWorker")
                         .HasForeignKey("SupermarketERP.Models.Data.BranchWorker", "UserId1");
 
                     b.Navigation("Branch");
@@ -661,17 +699,14 @@ namespace DotNetApiTemplate.Migrations
 
             modelBuilder.Entity("DotNetApiTemplate.Models.Data.User", b =>
                 {
-                    b.Navigation("Employee");
+                    b.Navigation("BranchWorker");
                 });
 
             modelBuilder.Entity("SupermarketERP.Models.Data.Branch", b =>
                 {
-                    b.Navigation("Workers");
-                });
+                    b.Navigation("BranchManager");
 
-            modelBuilder.Entity("SupermarketERP.Models.Data.BranchWorker", b =>
-                {
-                    b.Navigation("ManagedBranches");
+                    b.Navigation("Workers");
                 });
 
             modelBuilder.Entity("SupermarketERP.Models.Data.Warehouse", b =>

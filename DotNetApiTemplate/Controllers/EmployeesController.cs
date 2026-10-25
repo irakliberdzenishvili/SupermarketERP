@@ -42,4 +42,12 @@ public class EmployeesController(IEmployeeService employeeService)
     {
         return await employeeService.CreateEmployee(request);
     }
+
+    [HttpGet("{id:guid}")]
+    [EnableRateLimiting(EmployeeRateLimitPolicy.GetById)]
+    public async Task<ApiResponse<EmployeeResponse>> GetEmployeeById(
+     [FromRoute] Guid id)
+    {
+        return await employeeService.GetEmployeeById(id);
+    }
 }
