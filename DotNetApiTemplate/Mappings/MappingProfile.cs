@@ -20,10 +20,6 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.IsManager,
                 opt => opt.Ignore())
             .ForMember(dest => dest.IsAdmin,
-                opt => opt.Ignore())
-            .ForMember(dest => dest.Manager,
-                opt => opt.MapFrom(src => src.BranchManager))
-            .ForMember(dest => dest.Workers,
                 opt => opt.MapFrom(src => src.Workers));
 
         CreateMap<CreateBranchRequest, Branch>()

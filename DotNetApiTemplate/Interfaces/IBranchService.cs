@@ -23,9 +23,9 @@ public interface IBranchService
         Guid branchId,
         AssignBranchManagerRequest request);
 
-    Task<ApiResponse<BranchResponse>> GetBranchById(Guid id);
+    Task<ApiResponse<BranchDetailsResponse>> GetBranchById(Guid id);
 
-    Task<ApiResponse<BranchResponse>> GetBranchByCode(string code);
+    Task<ApiResponse<BranchDetailsResponse>> GetBranchByCode(string code);
 
     Task<PagedApiResponse<BranchResponse>> GetBranches(
         string? city,

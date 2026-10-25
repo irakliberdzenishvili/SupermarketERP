@@ -76,6 +76,19 @@ public class BranchService(
         return response;
     }
 
+    private BranchDetailsResponse MapBranchDetails(Branch branch)
+    {
+        var response = mapper.Map<BranchDetailsResponse>(branch);
+
+        response.IsManager =
+            !string.IsNullOrWhiteSpace(CurrentUserId) &&
+            branch.BranchManager?.UserId == CurrentUserId;
+
+        response.IsAdmin = IsAdmin;
+
+        return response;
+    }
+
     private async Task EnsureBranchManagerAccess(
         Branch branch)
     {
@@ -434,7 +447,7 @@ public class BranchService(
 
     #region GET BRANCH BY CODE
 
-    public async Task<ApiResponse<BranchResponse>>
+    public async Task<ApiResponse<BranchDetailsResponse>>
         GetBranchByCode(string code)
     {
         if (string.IsNullOrWhiteSpace(code))
@@ -459,9 +472,9 @@ public class BranchService(
                 ErrorMessages.BranchNotFound);
         }
 
-        return new ApiResponse<BranchResponse>
+        return new ApiResponse<BranchDetailsResponse>
         {
-            Data = MapBranch(branch),
+            Data = MapBranchDetails(branch),
             IsSuccess = true,
             Message = "Branch found."
         };
@@ -471,7 +484,7 @@ public class BranchService(
 
     #region GET BRANCH BY ID
 
-    public async Task<ApiResponse<BranchResponse>>
+    public async Task<ApiResponse<BranchDetailsResponse>>
         GetBranchById(Guid id)
     {
         var branch = await db.Branches
@@ -490,9 +503,9 @@ public class BranchService(
                 ErrorMessages.BranchNotFound);
         }
 
-        return new ApiResponse<BranchResponse>
+        return new ApiResponse<BranchDetailsResponse>
         {
-            Data = MapBranch(branch),
+            Data = MapBranchDetails(branch),
             IsSuccess = true,
             Message = "Branch found."
         };
@@ -502,30 +515,20 @@ public class BranchService(
 
     #region GET BRANCHES
 
-    public async Task<PagedApiResponse<BranchResponse>>
-        GetBranches(
-            string? city,
-            string? searchTerm,
-            int pageNumber = 1,
-            int pageSize = 10)
+    public async Task<PagedApiResponse<BranchResponse>> GetBranches(
+    string? city,
+    string? searchTerm,
+    int pageNumber = 1,
+    int pageSize = 10)
     {
-        if (pageNumber <= 0 ||
-            pageSize <= 0 ||
-            pageSize > 100)
+        if (pageNumber <= 0 || pageSize <= 0 || pageSize > 100)
         {
-            throw new UserFriendlyException(
-                ErrorMessages.InvalidPagination);
+            throw new UserFriendlyException(ErrorMessages.InvalidPagination);
         }
 
         var query = db.Branches
             .AsNoTracking()
-            .AsSplitQuery()
-            .Include(b => b.BranchManager)
-                .ThenInclude(bm => bm.User)
-            .Include(b => b.Workers)
-            .Where(b =>
-                b.IsActive &&
-                !b.IsDeleted);
+            .Where(b => b.IsActive && !b.IsDeleted);
 
         if (!string.IsNullOrWhiteSpace(city))
         {
@@ -547,14 +550,29 @@ public class BranchService(
             .ThenBy(b => b.Id)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
+            .Select(b => new BranchResponse
+            {
+                Id = b.Id,
+                Code = b.Code,
+                Name = b.Name,
+                Address = b.Address,
+                City = b.City,
+                PhoneNumber = b.PhoneNumber,
+                Email = b.Email,
+                IsActive = b.IsActive,
+                IsManager = b.BranchManager != null &&
+                            b.BranchManager.UserId == CurrentUserId,
+                IsAdmin = IsAdmin,
+                BranchManagerId = b.BranchManager == null
+                    ? null
+                    : b.BranchManager.UserId,
+                CreatedAt = b.CreatedAt,
+                UpdatedAt = b.UpdatedAt
+            })
             .ToListAsync();
 
-        var responses = branches
-            .Select(MapBranch)
-            .ToList();
-
         return new PagedApiResponse<BranchResponse>(
-            responses,
+            branches,
             totalCount,
             pageSize,
             pageNumber);

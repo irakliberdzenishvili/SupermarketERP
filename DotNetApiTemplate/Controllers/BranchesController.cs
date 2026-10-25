@@ -42,7 +42,7 @@ namespace SupermarketERP.Controllers
         [HttpGet("{id:guid}")]
         [AllowAnonymous]
         [EnableRateLimiting(BranchRateLimitPolicy.Get)]
-        public async Task<ApiResponse<BranchResponse>> GetBranchById(
+        public async Task<ApiResponse<BranchDetailsResponse>> GetBranchById(
             [FromRoute] Guid id)
         {
             return await branchService.GetBranchById(id);
@@ -51,7 +51,7 @@ namespace SupermarketERP.Controllers
         [HttpGet("code/{code}")]
         [AllowAnonymous]
         [EnableRateLimiting(BranchRateLimitPolicy.Get)]
-        public async Task<ApiResponse<BranchResponse>> GetBranchByCode(
+        public async Task<ApiResponse<BranchDetailsResponse>> GetBranchByCode(
             [FromRoute] string code)
         {
             return await branchService.GetBranchByCode(code);
