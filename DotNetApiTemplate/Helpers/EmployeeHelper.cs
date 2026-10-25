@@ -44,7 +44,6 @@ public class EmployeeHelper
         this.mapper = mapper;
     }
 
-    // GET EXISTING USER
 
     public async Task<User> GetUserForProvisioning(string userId)
     {
@@ -65,7 +64,6 @@ public class EmployeeHelper
         return user;
     }
 
-    // VALIDATE EMPLOYEE REQUEST
 
     public async Task ValidateEmployeeRequest(
         CreateEmployeeRequest request)
@@ -167,7 +165,6 @@ public class EmployeeHelper
         }
     }
 
-    // VALIDATE EXISTING USER ELIGIBILITY
 
     public async Task ValidateUserEligibility(User user)
     {
@@ -250,7 +247,6 @@ public class EmployeeHelper
         }
     }
 
-    // ASSIGN BRANCH WORKER OR MANAGER
 
     private async Task AssignBranchWorker(
         User user,
@@ -258,8 +254,6 @@ public class EmployeeHelper
     {
         var branchId = request.BranchId!.Value;
 
-        // Defensive check: do not allow a warehouse employee
-        // to receive a branch assignment.
 
         var hasWarehouseAssignment =
             await db.WarehouseWorkers
@@ -294,7 +288,7 @@ public class EmployeeHelper
             BranchId = branchId
         };
 
-        db.BranchWorkers.Add(worker);
+        await db.BranchWorkers.AddAsync(worker);
 
         if (request.Role == Roles.BranchManager)
         {
@@ -320,7 +314,6 @@ public class EmployeeHelper
         }
     }
 
-    // ASSIGN WAREHOUSE WORKER OR MANAGER
 
     private async Task AssignWarehouseEmployee(
         User user,
@@ -328,7 +321,6 @@ public class EmployeeHelper
     {
         var warehouseId = request.WarehouseId!.Value;
 
-        // Prevent users from working at both branch and warehouse.
 
         var hasBranchAssignment = await db.BranchWorkers
             .IgnoreQueryFilters()
@@ -390,7 +382,6 @@ public class EmployeeHelper
         }
     }
 
-    // GET EMPLOYEE RESPONSE
 
     public async Task<ApiResponse<EmployeeResponse>> GetEmployeeResponse(
         string userId)
