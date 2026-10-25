@@ -6,6 +6,7 @@ using SupermarketERP.Models.Request.Branch;
 using SupermarketERP.Models.Request.Warehouse;
 using SupermarketERP.Models.Response;
 using SupermarketERP.Models.Response.BranchManagerResponse;
+using SupermarketERP.Models.Response.Employee;
 using SupermarketERP.Models.Response.Warehouse;
 
 namespace DotNetApiTemplate.Mappings;
@@ -121,6 +122,10 @@ public class MappingProfile : Profile
                 opt => opt.Ignore())
             .ForMember(dest => dest.IsAdmin,
                 opt => opt.Ignore());
+
+        CreateMap<BranchWorker, BranchWorkerResponse>();
+
+        CreateMap<WarehouseWorker, WarehouseWorkerResponse>();
 
         #endregion
     }

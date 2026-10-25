@@ -124,7 +124,7 @@ namespace DotNetApiTemplate.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RefreshTokens");
+                    b.ToTable("RefreshTokens", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -323,7 +323,7 @@ namespace DotNetApiTemplate.Migrations
 
                     b.HasIndex("WarehouseId");
 
-                    b.ToTable("Branches");
+                    b.ToTable("Branches", (string)null);
                 });
 
             modelBuilder.Entity("SupermarketERP.Models.Data.BranchWorker", b =>
@@ -378,7 +378,7 @@ namespace DotNetApiTemplate.Migrations
                         .IsUnique()
                         .HasFilter("[UserId1] IS NOT NULL");
 
-                    b.ToTable("BranchWorkers");
+                    b.ToTable("BranchWorkers", (string)null);
                 });
 
             modelBuilder.Entity("SupermarketERP.Models.Data.Warehouse", b =>
@@ -439,7 +439,7 @@ namespace DotNetApiTemplate.Migrations
                     b.HasIndex("Code")
                         .IsUnique();
 
-                    b.ToTable("Warehouses");
+                    b.ToTable("Warehouses", (string)null);
                 });
 
             modelBuilder.Entity("SupermarketERP.Models.Data.WarehouseManager", b =>
@@ -469,7 +469,7 @@ namespace DotNetApiTemplate.Migrations
                     b.HasIndex("WarehouseId")
                         .IsUnique();
 
-                    b.ToTable("WarehouseManagers");
+                    b.ToTable("WarehouseManagers", (string)null);
                 });
 
             modelBuilder.Entity("SupermarketERP.Models.Data.WarehouseWorker", b =>
@@ -517,7 +517,7 @@ namespace DotNetApiTemplate.Migrations
 
                     b.HasIndex("WarehouseId");
 
-                    b.ToTable("WarehouseWorkers");
+                    b.ToTable("WarehouseWorkers", (string)null);
                 });
 
             modelBuilder.Entity("DotNetApiTemplate.Models.RefreshToken", b =>

@@ -101,6 +101,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IBranchService, BranchService>();
 builder.Services.AddScoped<IWarehouseService, WarehouseService>();
+builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 
 
 builder.Services.AddRateLimiter(options =>
@@ -108,6 +109,7 @@ builder.Services.AddRateLimiter(options =>
     AuthRateLimitPolicy.RegisterPolicies(options);
     BranchRateLimitPolicy.Register(options);
     WarehouseRateLimitPolicy.Register(options);
+    EmployeeRateLimitPolicy.Register(options);
 
     options.RejectionStatusCode =
         StatusCodes.Status429TooManyRequests;
