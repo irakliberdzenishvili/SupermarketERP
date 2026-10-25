@@ -1,5 +1,4 @@
-﻿
-using AutoMapper;
+﻿using AutoMapper;
 using DotNetApiTemplate.Models.Data;
 using SupermarketERP.Models.Data;
 using SupermarketERP.Models.Request.Branch;
@@ -64,8 +63,6 @@ public class MappingProfile : Profile
                 opt => opt.Ignore())
             .ForMember(dest => dest.Warehouse,
                 opt => opt.Ignore())
-            .ForMember(dest => dest.IsActive,
-                opt => opt.Ignore())
             .ForMember(dest => dest.CreatedAt,
                 opt => opt.Ignore())
             .ForMember(dest => dest.UpdatedAt,
@@ -107,12 +104,13 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.IsDeleted,
                 opt => opt.Ignore());
 
+        CreateMap<WarehouseManager, WarehouseWorkerResponse>()
+            .ForMember(dest => dest.Id,
+                opt => opt.MapFrom(src => src.Id));
+
         CreateMap<Warehouse, WarehouseResponse>()
             .ForMember(dest => dest.WarehouseManager,
-                opt => opt.MapFrom(src =>
-                    src.WarehouseManager != null
-                        ? src.WarehouseManager.User
-                        : null))
+                opt => opt.MapFrom(src => src.WarehouseManager))
             .ForMember(dest => dest.WarehouseManagerId,
                 opt => opt.MapFrom(src =>
                     src.WarehouseManager != null
@@ -123,7 +121,9 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.IsAdmin,
                 opt => opt.Ignore());
 
-        CreateMap<BranchWorker, BranchWorkerResponse>();
+        #endregion
+
+        #region WAREHOUSE WORKERS
 
         CreateMap<WarehouseWorker, WarehouseWorkerResponse>();
 

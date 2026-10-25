@@ -96,6 +96,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<JwtHelper>();
 builder.Services.AddScoped<AuthHelper>();
 builder.Services.AddScoped<WarehouseHelper>();
+builder.Services.AddScoped<EmployeeHelper>();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmailService, EmailService>();

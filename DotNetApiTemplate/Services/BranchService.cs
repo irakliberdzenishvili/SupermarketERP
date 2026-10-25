@@ -1,7 +1,6 @@
 ﻿
 using AutoMapper;
 using DotNetApiTemplate.DB;
-using DotNetApiTemplate.Exceptions;
 using DotNetApiTemplate.Helpers;
 using DotNetApiTemplate.Interfaces;
 using DotNetApiTemplate.Models.Data;
@@ -9,6 +8,7 @@ using DotNetApiTemplate.Models.Response;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SupermarketERP.Constants;
+using SupermarketERP.Exceptions;
 using SupermarketERP.Helpers;
 using SupermarketERP.Interfaces;
 using SupermarketERP.Models.Data;
@@ -205,7 +205,7 @@ public class BranchService(
 
         var conflictingRoles = currentRoles
             .Where(r =>
-                r == Roles.Employee ||
+                r == Roles.BranchWorker ||
                 r == Roles.Cashier ||
                 r == Roles.InventoryManager)
             .ToList();
@@ -265,12 +265,12 @@ public class BranchService(
                     }
 
                     if (!await userManager.IsInRoleAsync(
-                        previousUser, Roles.Employee))
+                        previousUser, Roles.BranchWorker))
                     {
                         var result =
                             await userManager.AddToRoleAsync(
                                 previousUser,
-                                Roles.Employee);
+                                Roles.BranchWorker);
 
                         EnsureIdentitySuccess(result);
                     }
@@ -659,10 +659,10 @@ public class BranchService(
             branchWorker.UpdatedAt = DateTime.UtcNow;
         }
 
-        if (!await userManager.IsInRoleAsync(user, Roles.Employee))
+        if (!await userManager.IsInRoleAsync(user, Roles.BranchWorker))
         {
             var result = await userManager.AddToRoleAsync(
-                user, Roles.Employee);
+                user, Roles.BranchWorker);
 
             EnsureIdentitySuccess(result);
         }
@@ -725,7 +725,7 @@ public class BranchService(
 
         var branchRoles = currentRoles
             .Where(r =>
-                r == Roles.Employee ||
+                r == Roles.BranchWorker ||
                 r == Roles.Cashier ||
                 r == Roles.InventoryManager ||
                 r == Roles.BranchManager)

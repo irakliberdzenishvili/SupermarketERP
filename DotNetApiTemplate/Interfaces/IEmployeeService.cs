@@ -1,4 +1,5 @@
 ﻿using DotNetApiTemplate.Models.Response;
+using SupermarketERP.Models.Request.Employee;
 using SupermarketERP.Models.Response.Employee;
 
 namespace SupermarketERP.Interfaces
@@ -11,5 +12,7 @@ namespace SupermarketERP.Interfaces
     Guid resourceId,
     int pageNumber = 1,
     int pageSize = 10);
+
+        Task<ApiResponse<EmployeeResponse>> CreateEmployee(CreateEmployeeRequest request);
     }
 }

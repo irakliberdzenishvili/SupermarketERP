@@ -1,13 +1,17 @@
 ﻿using AutoMapper;
 using DotNetApiTemplate.DB;
-using DotNetApiTemplate.Exceptions;
 using DotNetApiTemplate.Helpers;
+using DotNetApiTemplate.Interfaces;
 using DotNetApiTemplate.Models.Data;
 using DotNetApiTemplate.Models.Response;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SupermarketERP.Constants;
+using SupermarketERP.Exceptions;
+using SupermarketERP.Helpers;
 using SupermarketERP.Interfaces;
+using SupermarketERP.Models.Data;
+using SupermarketERP.Models.Request.Employee;
 using SupermarketERP.Models.Response;
 using SupermarketERP.Models.Response.Employee;
 
@@ -17,7 +21,10 @@ namespace SupermarketERP.Services
         AuthHelper authHelper,
         ApplicationDbContext db,
         UserManager<User> userManager,
-        IMapper mapper) : IEmployeeService
+        IMapper mapper,
+        EmployeeHelper employeeHelper,
+        IEmailService emailService,
+        IConfiguration configuration) : IEmployeeService
     {
         private string CurrentUserId => authHelper.UserId;
         private string CurrentUserRole => authHelper.UserRole;
@@ -188,6 +195,70 @@ namespace SupermarketERP.Services
                 IsSuccess = true,
                 Message = "Employees retrieved successfully."
             };
+        }
+
+        public async Task<ApiResponse<EmployeeResponse>> CreateEmployee(
+    CreateEmployeeRequest request)
+        {
+            if (!await IsAdmin())
+            {
+                throw new UserFriendlyException(ErrorMessages.Forbidden);
+            }
+
+            var user = await employeeHelper.GetUserForProvisioning(
+                request.UserId);
+
+            await employeeHelper.ValidateEmployeeRequest(request);
+
+            await employeeHelper.ValidateUserEligibility(user);
+
+            await using var transaction =
+                await db.Database.BeginTransactionAsync();
+
+            await employeeHelper.AssignWorkplace(user, request);
+
+            await employeeHelper.AssignEmployeeRole(user, request.Role);
+
+            await db.SaveChangesAsync();
+
+            await transaction.CommitAsync();
+
+            var token = await userManager.GeneratePasswordResetTokenAsync(user);
+
+            var resetLink =
+                $"{configuration["Frontend:BaseUrl"]}/reset-password" +
+                $"?userId={Uri.EscapeDataString(user.Id)}" +
+                $"&token={Uri.EscapeDataString(token)}";
+
+            var subject = "Welcome to SupermarketERP";
+
+            var htmlBody = $"""
+        <h2>Welcome to SupermarketERP!</h2>
+
+        <p>Your employee account has been activated.</p>
+
+        <p><strong>Role:</strong>
+            {System.Net.WebUtility.HtmlEncode(request.Role)}
+        </p>
+
+        <p>Click the link below to set your password:</p>
+
+        <p>
+            <a href="{System.Net.WebUtility.HtmlEncode(resetLink)}">
+                Set Your Password
+            </a>
+        </p>
+
+        <p>If you weren't expecting this email,
+           please contact your administrator.</p>
+        """;
+
+            await emailService.SendEmailAsync(
+                user.Email!,
+                subject,
+                htmlBody);
+
+            return await employeeHelper.GetEmployeeResponse(user.Id);
         }
     }
 }

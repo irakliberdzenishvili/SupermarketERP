@@ -1,15 +1,17 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using DotNetApiTemplate.Models.Response;
 using SupermarketERP.Constants;
 using SupermarketERP.Interfaces;
+using SupermarketERP.Models.Request.Employee;
 using SupermarketERP.Models.Response.Employee;
 using SupermarketERP.Security;
 
 namespace SupermarketERP.Controllers;
 
-[Route("api/v1/employees")]
+[Route("api/employees")]
 [ApiController]
 [Authorize(Roles = $"{Roles.Admin},{Roles.BranchManager},{Roles.WarehouseManager}")]
 public class EmployeesController(IEmployeeService employeeService)
@@ -30,5 +32,14 @@ public class EmployeesController(IEmployeeService employeeService)
             resourceId,
             pageNumber,
             pageSize);
+    }
+
+    [HttpPost]
+    [Authorize(Roles = Roles.Admin)]
+    [EnableRateLimiting(EmployeeRateLimitPolicy.Create)]
+    public async Task<ApiResponse<EmployeeResponse>> CreateEmployee(
+        [FromBody] CreateEmployeeRequest request)
+    {
+        return await employeeService.CreateEmployee(request);
     }
 }

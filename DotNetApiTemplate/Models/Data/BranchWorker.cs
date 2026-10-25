@@ -39,7 +39,7 @@ public class BranchWorker : ISoftDeletable
     [InverseProperty(nameof(Branch.Workers))]
     public Branch? Branch { get; set; }
 
-
+    
     [InverseProperty(nameof(Branch.BranchManager))]
     public ICollection<Branch> ManagedBranches { get; set; }
         = new List<Branch>();

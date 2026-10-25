@@ -1,6 +1,5 @@
 ﻿
 using DotNetApiTemplate.DB;
-using DotNetApiTemplate.Exceptions;
 using DotNetApiTemplate.Helpers;
 using DotNetApiTemplate.Interfaces;
 using DotNetApiTemplate.Models;
@@ -11,6 +10,7 @@ using DotNetApiTemplate.Models.Settings;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using SupermarketERP.Exceptions;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;

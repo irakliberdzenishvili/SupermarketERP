@@ -1,13 +1,13 @@
 ﻿
 using AutoMapper;
 using DotNetApiTemplate.DB;
-using DotNetApiTemplate.Exceptions;
 using DotNetApiTemplate.Helpers;
 using DotNetApiTemplate.Models.Data;
 using DotNetApiTemplate.Models.Response;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SupermarketERP.Constants;
+using SupermarketERP.Exceptions;
 using SupermarketERP.Helpers;
 using SupermarketERP.Interfaces;
 using SupermarketERP.Models.Data;
@@ -224,9 +224,9 @@ public class WarehouseService(
 
         var createdWarehouse = await db.Warehouses
             .AsNoTracking()
-            .Include(w => w.Branches)
-            .Include(w => w.WarehouseManager)
-                .ThenInclude(wm => wm.User)
+            .Include(b => b.Branches)
+            .Include(wm => wm.WarehouseManager)
+                .ThenInclude(u => u.User)
             .FirstAsync(w => w.Id == warehouse.Id);
 
         return new ApiResponse<WarehouseResponse>

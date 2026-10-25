@@ -1,5 +1,5 @@
 ﻿
-namespace DotNetApiTemplate.Exceptions;
+namespace SupermarketERP.Exceptions;
 
 public class UserFriendlyException(ErrorMessages error)
     : Exception(error.ToString());
@@ -124,6 +124,21 @@ public enum ErrorMessages
     WarehouseAlreadyActive = 75,
     WarehouseAlreadyInactive = 76,
     WarehouseHasNoManager = 77,
+
+    UserAlreadyCashier = 78,
+    InvalidRole = 79,
+
+    #endregion
+
+    #region EMPLOYEES
+
+    UserAlreadyHasRole = 80,
+    UserCannotHaveMultipleRoles = 81,
+    UserAlreadyHasEmployeeAssignment = 82,
+    EmployeeWorkplaceNotAllowed = 83,
+    EmployeeRoleAssignmentFailed = 84,
+    EmployeeAlreadyWorksAtBranch = 85,
+    EmployeeAlreadyWorksAtWarehouse = 86,
 
     #endregion
 }

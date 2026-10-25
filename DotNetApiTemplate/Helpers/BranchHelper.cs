@@ -1,4 +1,4 @@
-﻿using DotNetApiTemplate.Exceptions;
+﻿using SupermarketERP.Exceptions;
 
 namespace SupermarketERP.Helpers;
 

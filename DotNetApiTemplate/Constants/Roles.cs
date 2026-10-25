@@ -7,7 +7,7 @@ public static class Roles
     public const string InventoryManager = "InventoryManager";
     public const string WarehouseWorker = "WarehouseWorker";
     public const string Cashier = "Cashier";
-    public const string Employee = "Employee";
+    public const string BranchWorker = "BranchWorker";
     public const string User = "User";
 
     public const string WarehouseManager = "WarehouseManager";
@@ -19,7 +19,7 @@ public static class Roles
         InventoryManager,
         WarehouseWorker,
         Cashier,
-        Employee,
+        BranchWorker,
         User,
         WarehouseManager
     ];
