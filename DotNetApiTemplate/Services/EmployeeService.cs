@@ -223,7 +223,7 @@ public class EmployeeService(
     }
 
 
-    public async Task<ApiResponse<EmployeeResponse>> GetEmployeeById(Guid resourceId)
+    public async Task<ApiResponse<EmployeeResponse>> GetEmployeeByResourceId(Guid resourceId)
     {
         var isBranch = await db.Branches.AnyAsync(b =>
             b.Id == resourceId && b.IsActive && !b.IsDeleted);

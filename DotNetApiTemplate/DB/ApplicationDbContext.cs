@@ -39,6 +39,9 @@ public class ApplicationDbContext : IdentityDbContext<User>
     public DbSet<WarehouseManager> WarehouseManagers
         => Set<WarehouseManager>();
 
+    public DbSet<Product> Products
+        => Set<Product>();
+
     #endregion
 
     protected override void OnModelCreating(ModelBuilder builder)

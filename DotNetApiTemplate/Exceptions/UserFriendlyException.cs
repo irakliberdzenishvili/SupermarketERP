@@ -140,5 +140,9 @@ public enum ErrorMessages
     EmployeeAlreadyWorksAtBranch = 85,
     EmployeeAlreadyWorksAtWarehouse = 86,
 
+    ProductNotFound = 87,
+    ProductIdIsRequired = 88,
+    ProductAlreadyExists = 89
+
     #endregion
 }

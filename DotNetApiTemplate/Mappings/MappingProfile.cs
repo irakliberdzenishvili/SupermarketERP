@@ -2,10 +2,12 @@
 using DotNetApiTemplate.Models.Data;
 using SupermarketERP.Models.Data;
 using SupermarketERP.Models.Request.Branch;
+using SupermarketERP.Models.Request.Product;
 using SupermarketERP.Models.Request.Warehouse;
 using SupermarketERP.Models.Response;
 using SupermarketERP.Models.Response.BranchManagerResponse;
 using SupermarketERP.Models.Response.Employee;
+using SupermarketERP.Models.Response.Product;
 using SupermarketERP.Models.Response.Warehouse;
 
 namespace DotNetApiTemplate.Mappings;
@@ -136,6 +138,14 @@ public class MappingProfile : Profile
         #region WAREHOUSE WORKERS
 
         CreateMap<WarehouseWorker, WarehouseWorkerResponse>();
+
+        #endregion
+
+        #region PRODUCTS
+
+        CreateMap<Product, ProductResponse>();
+        CreateMap<List<Product>, ProductResponse>();
+        CreateMap<CreateProductRequest, Product>();
 
         #endregion
     }
