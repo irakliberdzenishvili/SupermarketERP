@@ -146,7 +146,24 @@ public class MappingProfile : Profile
         CreateMap<Product, ProductResponse>();
         CreateMap<List<Product>, ProductResponse>();
         CreateMap<CreateProductRequest, Product>();
+        CreateMap<UpdateProductRequest, Product>()
+    .ForMember(dest => dest.Id, opt => opt.Ignore())
+    .ForMember(dest => dest.SKU, opt => opt.Ignore())
+    .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+    .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
+    .ForMember(dest => dest.IsDeleted, opt => opt.Ignore())
+    .ForMember(dest => dest.IsActive, opt => opt.Ignore());
 
+        CreateMap<ChangeProductStatusRequest, Product>()
+    .ForMember(dest => dest.Id, opt => opt.Ignore())
+    .ForMember(dest => dest.SKU, opt => opt.Ignore())
+    .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+    .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
+    .ForMember(dest => dest.IsDeleted, opt => opt.Ignore())
+    .ForMember(dest => dest.IsActive, opt => opt.Ignore())
+    .ForMember(dest => dest.Category, opt => opt.Ignore())
+    .ForMember(dest => dest.Barcode, opt => opt.Ignore())
+    .ForMember(dest => dest.Description, opt => opt.Ignore());
         #endregion
     }
 }

@@ -11,5 +11,13 @@ namespace SupermarketERP.Interfaces
         Task<ApiResponse<ProductResponse>> GetProductById(Guid productId);
 
         Task<ApiResponse<ProductResponse>> CreateProduct(CreateProductRequest request);
+
+        Task<ApiResponse<ProductResponse>> UpdateProduct(Guid productId, UpdateProductRequest request);
+
+        Task<ApiResponse<ProductResponse>> ChangeProductStatus(Guid productId, ChangeProductStatusRequest request);
+
+        Task<ApiResponse<ProductResponse>> DeleteProduct(Guid productId);
+
+        Task<ApiResponse<ProductResponse>> GetProductByBarcode(string barcode);
     }
 }
