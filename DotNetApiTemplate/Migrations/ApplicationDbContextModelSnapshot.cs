@@ -407,6 +407,77 @@ namespace SupermarketERP.Migrations
                     b.ToTable("BranchWorkers");
                 });
 
+            modelBuilder.Entity("SupermarketERP.Models.Data.Inventory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("BranchId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("MinimumQuantity")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("WarehouseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId", "BranchId")
+                        .IsUnique()
+                        .HasFilter("[BranchId] IS NOT NULL");
+
+                    b.HasIndex("ProductId", "WarehouseId")
+                        .IsUnique()
+                        .HasFilter("[WarehouseId] IS NOT NULL");
+
+                    b.ToTable("Inventories");
+                });
+
+            modelBuilder.Entity("SupermarketERP.Models.Data.InventoryAdjustment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("InventoryId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("PerformedByUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("QuantityChange")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InventoryId");
+
+                    b.ToTable("InventoryAdjustments");
+                });
+
             modelBuilder.Entity("SupermarketERP.Models.Data.Product", b =>
                 {
                     b.Property<Guid>("Id")
@@ -721,6 +792,28 @@ namespace SupermarketERP.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("SupermarketERP.Models.Data.Inventory", b =>
+                {
+                    b.HasOne("SupermarketERP.Models.Data.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("SupermarketERP.Models.Data.InventoryAdjustment", b =>
+                {
+                    b.HasOne("SupermarketERP.Models.Data.Inventory", "Inventory")
+                        .WithMany("InventoryAdjustments")
+                        .HasForeignKey("InventoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Inventory");
+                });
+
             modelBuilder.Entity("SupermarketERP.Models.Data.WarehouseManager", b =>
                 {
                     b.HasOne("DotNetApiTemplate.Models.Data.User", "User")
@@ -769,6 +862,11 @@ namespace SupermarketERP.Migrations
                     b.Navigation("BranchManager");
 
                     b.Navigation("Workers");
+                });
+
+            modelBuilder.Entity("SupermarketERP.Models.Data.Inventory", b =>
+                {
+                    b.Navigation("InventoryAdjustments");
                 });
 
             modelBuilder.Entity("SupermarketERP.Models.Data.Warehouse", b =>

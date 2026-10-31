@@ -1,6 +1,6 @@
 ﻿using DotNetApiTemplate.Models.Response;
-using SupermarketERP.Models.Request.Product;
-using SupermarketERP.Models.Response.Product;
+using SupermarketERP.Models.Request;
+using SupermarketERP.Models.Response;
 
 namespace SupermarketERP.Interfaces
 {

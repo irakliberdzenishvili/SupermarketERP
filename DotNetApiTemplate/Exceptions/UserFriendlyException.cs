@@ -142,7 +142,17 @@ public enum ErrorMessages
 
     ProductNotFound = 87,
     ProductIdIsRequired = 88,
-    ProductAlreadyExists = 89
+    ProductAlreadyExists = 89,
+
+    InventoryNotFound = 90,
+    MustBeGreaterThanZero = 91,
+    ProductInventoryAlreadyExists = 92,
+
+    MustBeNegativeOrPositive = 93,
+    AfterAdjustingQuantityIsNegativeItMustBePositiveOrZero = 94,
+
+    ReasonIsRequiredForAdjustment = 95,
+    IntegerOverflow = 96
 
     #endregion
 }

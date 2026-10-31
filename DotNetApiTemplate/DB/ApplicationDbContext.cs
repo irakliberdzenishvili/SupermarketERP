@@ -41,6 +41,11 @@ public class ApplicationDbContext : IdentityDbContext<User>
 
     public DbSet<Product> Products
         => Set<Product>();
+    public DbSet<Inventory> Inventories
+        => Set<Inventory>();
+
+    public DbSet<InventoryAdjustment> InventoryAdjustments
+        => Set<InventoryAdjustment>();
 
     #endregion
 

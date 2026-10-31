@@ -1,24 +1,23 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace SupermarketERP.Models.Request.Product
+namespace SupermarketERP.Models.Request;
+
+public class UpdateProductRequest
 {
-    public class UpdateProductRequest
-    {
-        public string? Barcode { get; set; }
+    public string? Barcode { get; set; }
 
-        [MaxLength(150)]
-        [Required]
-        public string Name { get; set; } = null!;
+    [MaxLength(150)]
+    [Required]
+    public string Name { get; set; } = null!;
 
-        [MaxLength(500)]
-        public string? Description { get; set; }
+    [MaxLength(500)]
+    public string? Description { get; set; }
 
-        [MaxLength(100)]
-        [Required]
-        public string Category { get; set; } = null!;
+    [MaxLength(100)]
+    [Required]
+    public string Category { get; set; } = null!;
 
-        public decimal PurchasePrice { get; set; }
+    public decimal PurchasePrice { get; set; }
 
-        public decimal SellingPrice { get; set; }
-    }
+    public decimal SellingPrice { get; set; }
 }

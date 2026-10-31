@@ -1,13 +1,13 @@
 ﻿using AutoMapper;
 using DotNetApiTemplate.Models.Data;
 using SupermarketERP.Models.Data;
+using SupermarketERP.Models.Request;
 using SupermarketERP.Models.Request.Branch;
-using SupermarketERP.Models.Request.Product;
+using SupermarketERP.Models.Request.Inventory;
 using SupermarketERP.Models.Request.Warehouse;
 using SupermarketERP.Models.Response;
 using SupermarketERP.Models.Response.BranchManagerResponse;
 using SupermarketERP.Models.Response.Employee;
-using SupermarketERP.Models.Response.Product;
 using SupermarketERP.Models.Response.Warehouse;
 
 namespace DotNetApiTemplate.Mappings;
@@ -164,6 +164,18 @@ public class MappingProfile : Profile
     .ForMember(dest => dest.Category, opt => opt.Ignore())
     .ForMember(dest => dest.Barcode, opt => opt.Ignore())
     .ForMember(dest => dest.Description, opt => opt.Ignore());
+        #endregion
+
+        #region INVENTORY
+
+        CreateMap<Inventory, InventoryResponse>();
+        CreateMap<List<Inventory>, InventoryResponse>();
+        CreateMap<CreateInventoryRequest, Inventory>();
+        CreateMap<AdjustInventoryRequest, InventoryAdjustment>();
+        CreateMap<List<InventoryAdjustment>, InventoryAdjustmentResponse>();
+        CreateMap<InventoryAdjustment, InventoryAdjustmentResponse>();
+
+
         #endregion
     }
 }
