@@ -4,11 +4,11 @@ using SupermarketERP.Models.Data;
 using SupermarketERP.Models.Request;
 using SupermarketERP.Models.Request.Branch;
 using SupermarketERP.Models.Request.Inventory;
-using SupermarketERP.Models.Request.Warehouse;
+using SupermarketERP.Models.Request.Stock;
 using SupermarketERP.Models.Response;
 using SupermarketERP.Models.Response.BranchManagerResponse;
 using SupermarketERP.Models.Response.Employee;
-using SupermarketERP.Models.Response.Warehouse;
+using SupermarketERP.Models.Response.Stock;
 
 namespace DotNetApiTemplate.Mappings;
 
@@ -175,6 +175,14 @@ public class MappingProfile : Profile
         CreateMap<List<InventoryAdjustment>, InventoryAdjustmentResponse>();
         CreateMap<InventoryAdjustment, InventoryAdjustmentResponse>();
 
+
+        #endregion
+
+        #region STOCK
+
+        CreateMap<StockTransfer, StockTransferResponse>();
+        CreateMap<List<StockTransfer>, StockTransferResponse>();
+        CreateMap<CreateStockTransferRequest, StockTransfer>();
 
         #endregion
     }

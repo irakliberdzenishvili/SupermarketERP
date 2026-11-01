@@ -5,8 +5,8 @@ using Microsoft.AspNetCore.RateLimiting;
 using SupermarketERP.Constants;
 using SupermarketERP.Interfaces;
 using SupermarketERP.Models.Data;
-using SupermarketERP.Models.Request.Warehouse;
-using SupermarketERP.Models.Response.Warehouse;
+using SupermarketERP.Models.Request;
+using SupermarketERP.Models.Response;
 using SupermarketERP.Security;
 
 namespace SupermarketERP.Controllers;

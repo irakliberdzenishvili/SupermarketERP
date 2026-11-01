@@ -11,8 +11,8 @@ using SupermarketERP.Exceptions;
 using SupermarketERP.Helpers;
 using SupermarketERP.Interfaces;
 using SupermarketERP.Models.Data;
-using SupermarketERP.Models.Request.Warehouse;
-using SupermarketERP.Models.Response.Warehouse;
+using SupermarketERP.Models.Request;
+using SupermarketERP.Models.Response;
 
 namespace SupermarketERP.Services;
 

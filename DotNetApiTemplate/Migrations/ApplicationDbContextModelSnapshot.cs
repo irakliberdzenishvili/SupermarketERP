@@ -543,6 +543,63 @@ namespace SupermarketERP.Migrations
                     b.ToTable("Products");
                 });
 
+            modelBuilder.Entity("SupermarketERP.Models.Data.StockTransfer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("ApprovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ApprovedByUserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DispatchedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DispatchedByUserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("FromWarehouseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ReceivedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ReceivedByUserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RequestedByUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("ToBranchId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FromWarehouseId");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("ToBranchId");
+
+                    b.ToTable("StockTransfers");
+                });
+
             modelBuilder.Entity("SupermarketERP.Models.Data.Warehouse", b =>
                 {
                     b.Property<Guid>("Id")
@@ -815,6 +872,33 @@ namespace SupermarketERP.Migrations
                         .IsRequired();
 
                     b.Navigation("Inventory");
+                });
+
+            modelBuilder.Entity("SupermarketERP.Models.Data.StockTransfer", b =>
+                {
+                    b.HasOne("SupermarketERP.Models.Data.Warehouse", "FromWarehouse")
+                        .WithMany()
+                        .HasForeignKey("FromWarehouseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SupermarketERP.Models.Data.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SupermarketERP.Models.Data.Branch", "ToBranch")
+                        .WithMany()
+                        .HasForeignKey("ToBranchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FromWarehouse");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("ToBranch");
                 });
 
             modelBuilder.Entity("SupermarketERP.Models.Data.WarehouseManager", b =>

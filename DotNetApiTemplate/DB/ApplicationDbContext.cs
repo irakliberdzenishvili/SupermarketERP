@@ -47,6 +47,10 @@ public class ApplicationDbContext : IdentityDbContext<User>
     public DbSet<InventoryAdjustment> InventoryAdjustments
         => Set<InventoryAdjustment>();
 
+    public DbSet<StockTransfer> StockTransfers
+        => Set<StockTransfer>();
+         
+
     #endregion
 
     protected override void OnModelCreating(ModelBuilder builder)

@@ -1,7 +1,7 @@
 ﻿
 using System.ComponentModel.DataAnnotations;
 
-namespace SupermarketERP.Models.Request.Warehouse;
+namespace SupermarketERP.Models.Request;
 
 public class CreateWarehouseRequest
 {

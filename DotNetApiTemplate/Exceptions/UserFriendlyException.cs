@@ -154,7 +154,11 @@ public enum ErrorMessages
     ReasonIsRequiredForAdjustment = 95,
     IntegerOverflow = 96,
 
-    lowStockInventoriesNotFound = 97
+    lowStockInventoriesNotFound = 97,
+
+    IdsAreRequired = 98,
+
+    WarehouseNotAssignedToBranch = 99
 
     #endregion
 }

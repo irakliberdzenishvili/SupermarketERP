@@ -1,8 +1,7 @@
-﻿namespace SupermarketERP.Models.Request.Warehouse
-{
-    public class ChangeWarehouseStatusRequest
-    {
-        public bool IsActive { get; set; }
+﻿namespace SupermarketERP.Models.Request;
 
-    }
+public class ChangeWarehouseStatusRequest
+{
+    public bool IsActive { get; set; }
+
 }
