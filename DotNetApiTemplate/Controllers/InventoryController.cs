@@ -1,12 +1,14 @@
-﻿using DotNetApiTemplate.Models.Response;
+﻿
+using DotNetApiTemplate.Models.Response;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using SupermarketERP.Constants;
 using SupermarketERP.Interfaces;
 using SupermarketERP.Models.Request;
 using SupermarketERP.Models.Request.Inventory;
 using SupermarketERP.Models.Response;
+using SupermarketERP.Security;
 
 namespace SupermarketERP.Controllers
 {
@@ -15,9 +17,9 @@ namespace SupermarketERP.Controllers
     [Authorize]
     public class InventoryController(IInventoryService inventoryService) : ControllerBase
     {
-
         [HttpGet]
         [Authorize(Roles = Roles.Admin)]
+        [EnableRateLimiting(InventoryRateLimitPolicy.Get)]
         public async Task<PagedApiResponse<InventoryResponse>> GetInventories(
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10)
@@ -27,6 +29,7 @@ namespace SupermarketERP.Controllers
 
         [HttpGet("warehouses/{warehouseId:guid}")]
         [Authorize(Roles = $"{Roles.Admin},{Roles.WarehouseManager}")]
+        [EnableRateLimiting(InventoryRateLimitPolicy.Get)]
         public async Task<PagedApiResponse<InventoryResponse>> GetInventoriesByWarehouse(
             [FromRoute] Guid warehouseId,
             [FromQuery] int pageNumber = 1,
@@ -37,6 +40,7 @@ namespace SupermarketERP.Controllers
 
         [HttpGet("branches/{branchId:guid}")]
         [Authorize(Roles = $"{Roles.Admin},{Roles.BranchManager}")]
+        [EnableRateLimiting(InventoryRateLimitPolicy.Get)]
         public async Task<PagedApiResponse<InventoryResponse>> GetInventoriesByBranch(
             [FromRoute] Guid branchId,
             [FromQuery] int pageNumber = 1,
@@ -47,13 +51,16 @@ namespace SupermarketERP.Controllers
 
         [HttpGet("{inventoryId:guid}")]
         [Authorize(Roles = Roles.Admin)]
-        public async Task<ApiResponse<InventoryResponse>> GetInventoryById([FromRoute] Guid inventoryId)
+        [EnableRateLimiting(InventoryRateLimitPolicy.GetById)]
+        public async Task<ApiResponse<InventoryResponse>> GetInventoryById(
+            [FromRoute] Guid inventoryId)
         {
             return await inventoryService.GetInventoryById(inventoryId);
         }
 
         [HttpGet("warehouses/{warehouseId:guid}/{inventoryId:guid}")]
         [Authorize(Roles = $"{Roles.Admin},{Roles.WarehouseManager}")]
+        [EnableRateLimiting(InventoryRateLimitPolicy.GetById)]
         public async Task<ApiResponse<InventoryResponse>> GetWarehouseInventoryById(
             [FromRoute] Guid warehouseId,
             [FromRoute] Guid inventoryId)
@@ -63,6 +70,7 @@ namespace SupermarketERP.Controllers
 
         [HttpGet("branches/{branchId:guid}/{inventoryId:guid}")]
         [Authorize(Roles = $"{Roles.Admin},{Roles.BranchManager}")]
+        [EnableRateLimiting(InventoryRateLimitPolicy.GetById)]
         public async Task<ApiResponse<InventoryResponse>> GetBranchInventoryById(
             [FromRoute] Guid branchId,
             [FromRoute] Guid inventoryId)
@@ -72,6 +80,7 @@ namespace SupermarketERP.Controllers
 
         [HttpPost("warehouses/{warehouseId:guid}")]
         [Authorize(Roles = $"{Roles.Admin},{Roles.WarehouseManager}")]
+        [EnableRateLimiting(InventoryRateLimitPolicy.Create)]
         public async Task<ApiResponse<InventoryResponse>> CreateInventory(
             [FromRoute] Guid warehouseId,
             [FromBody] CreateInventoryRequest request)
@@ -81,6 +90,7 @@ namespace SupermarketERP.Controllers
 
         [HttpPatch("warehouses/{warehouseId:guid}/{inventoryId:guid}/adjust")]
         [Authorize(Roles = $"{Roles.Admin},{Roles.WarehouseManager}")]
+        [EnableRateLimiting(InventoryRateLimitPolicy.Adjust)]
         public async Task<ApiResponse<InventoryResponse>> AdjustWarehouseInventory(
             [FromRoute] Guid warehouseId,
             [FromRoute] Guid inventoryId,
@@ -91,6 +101,7 @@ namespace SupermarketERP.Controllers
 
         [HttpGet("warehouses/{warehouseId:guid}/{inventoryId:guid}/adjustments")]
         [Authorize(Roles = $"{Roles.Admin},{Roles.WarehouseManager}")]
+        [EnableRateLimiting(InventoryRateLimitPolicy.GetAdjustments)]
         public async Task<PagedApiResponse<InventoryAdjustmentResponse>> GetWarehouseInventoryAdjustments(
             [FromRoute] Guid warehouseId,
             [FromRoute] Guid inventoryId,
@@ -100,9 +111,9 @@ namespace SupermarketERP.Controllers
             return await inventoryService.GetWarehouseInventoryAdjustments(warehouseId, inventoryId, pageNumber, pageSize);
         }
 
-
         [HttpGet("low-stock")]
         [Authorize(Roles = Roles.Admin)]
+        [EnableRateLimiting(InventoryRateLimitPolicy.GetLowStock)]
         public async Task<PagedApiResponse<InventoryResponse>> GetLowStockInventories(
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10)
@@ -111,7 +122,8 @@ namespace SupermarketERP.Controllers
         }
 
         [HttpGet("warehouses/{warehouseId:guid}/low-stock")]
-        [Authorize(Roles = Roles.Admin)]
+        [Authorize(Roles = $"{Roles.Admin},{Roles.WarehouseManager}")]
+        [EnableRateLimiting(InventoryRateLimitPolicy.GetLowStock)]
         public async Task<PagedApiResponse<InventoryResponse>> GetWarehouseLowStockInventories(
             [FromRoute] Guid warehouseId,
             [FromQuery] int pageNumber = 1,
@@ -121,8 +133,9 @@ namespace SupermarketERP.Controllers
         }
 
         [HttpGet("branches/{branchId:guid}/low-stock")]
-        [Authorize(Roles = Roles.Admin)]
-        public async Task<PagedApiResponse<InventoryResponse>> GetLowStockInventories(
+        [Authorize(Roles = $"{Roles.Admin},{Roles.BranchManager}")]
+        [EnableRateLimiting(InventoryRateLimitPolicy.GetLowStock)]
+        public async Task<PagedApiResponse<InventoryResponse>> GetBranchLowStockInventories(
             [FromRoute] Guid branchId,
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10)
@@ -132,6 +145,7 @@ namespace SupermarketERP.Controllers
 
         [HttpGet("products/{productId:guid}")]
         [Authorize(Roles = Roles.Admin)]
+        [EnableRateLimiting(InventoryRateLimitPolicy.GetByProduct)]
         public async Task<PagedApiResponse<InventoryResponse>> GetInventoriesByProduct(
             [FromRoute] Guid productId,
             [FromQuery] int pageNumber = 1,
@@ -141,7 +155,8 @@ namespace SupermarketERP.Controllers
         }
 
         [HttpPatch("branches/{branchId:guid}/{inventoryId:guid}/adjust")]
-        [Authorize(Roles = $"{Roles.Admin},{Roles.WarehouseManager}")]
+        [Authorize(Roles = $"{Roles.Admin},{Roles.BranchManager}")]
+        [EnableRateLimiting(InventoryRateLimitPolicy.Adjust)]
         public async Task<ApiResponse<InventoryResponse>> AdjustBranchInventory(
             [FromRoute] Guid branchId,
             [FromRoute] Guid inventoryId,
@@ -151,7 +166,8 @@ namespace SupermarketERP.Controllers
         }
 
         [HttpGet("branches/{branchId:guid}/{inventoryId:guid}/adjustments")]
-        [Authorize(Roles = $"{Roles.Admin},{Roles.WarehouseManager}")]
+        [Authorize(Roles = $"{Roles.Admin},{Roles.BranchManager}")]
+        [EnableRateLimiting(InventoryRateLimitPolicy.GetAdjustments)]
         public async Task<PagedApiResponse<InventoryAdjustmentResponse>> GetBranchInventoryAdjustments(
             [FromRoute] Guid branchId,
             [FromRoute] Guid inventoryId,

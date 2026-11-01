@@ -115,6 +115,8 @@ builder.Services.AddRateLimiter(options =>
     WarehouseRateLimitPolicy.Register(options);
     EmployeeRateLimitPolicy.Register(options);
     ProductRateLimitPolicy.Register(options);
+    InventoryRateLimitPolicy.Register(options);
+
 
     options.RejectionStatusCode =
         StatusCodes.Status429TooManyRequests;
