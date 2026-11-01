@@ -89,7 +89,7 @@ namespace SupermarketERP.Controllers
             return await inventoryService.AdjustWarehouseInventory(warehouseId, inventoryId, request);
         }
 
-        [HttpPatch("warehouses/{warehouseId:guid}/{inventoryId:guid}/adjustments")]
+        [HttpGet("warehouses/{warehouseId:guid}/{inventoryId:guid}/adjustments")]
         [Authorize(Roles = $"{Roles.Admin},{Roles.WarehouseManager}")]
         public async Task<PagedApiResponse<InventoryAdjustmentResponse>> GetWarehouseInventoryAdjustments(
             [FromRoute] Guid warehouseId,
@@ -98,6 +98,67 @@ namespace SupermarketERP.Controllers
             [FromQuery] int pageSize = 10)
         {
             return await inventoryService.GetWarehouseInventoryAdjustments(warehouseId, inventoryId, pageNumber, pageSize);
+        }
+
+
+        [HttpGet("low-stock")]
+        [Authorize(Roles = Roles.Admin)]
+        public async Task<PagedApiResponse<InventoryResponse>> GetLowStockInventories(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            return await inventoryService.GetLowStockInventories(pageNumber, pageSize);
+        }
+
+        [HttpGet("warehouses/{warehouseId:guid}/low-stock")]
+        [Authorize(Roles = Roles.Admin)]
+        public async Task<PagedApiResponse<InventoryResponse>> GetWarehouseLowStockInventories(
+            [FromRoute] Guid warehouseId,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            return await inventoryService.GetWarehouseLowStockInventories(warehouseId, pageNumber, pageSize);
+        }
+
+        [HttpGet("branches/{branchId:guid}/low-stock")]
+        [Authorize(Roles = Roles.Admin)]
+        public async Task<PagedApiResponse<InventoryResponse>> GetLowStockInventories(
+            [FromRoute] Guid branchId,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            return await inventoryService.GetBranchLowStockInventories(branchId, pageNumber, pageSize);
+        }
+
+        [HttpGet("products/{productId:guid}")]
+        [Authorize(Roles = Roles.Admin)]
+        public async Task<PagedApiResponse<InventoryResponse>> GetInventoriesByProduct(
+            [FromRoute] Guid productId,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            return await inventoryService.GetInventoriesByProduct(productId, pageNumber, pageSize);
+        }
+
+        [HttpPatch("branches/{branchId:guid}/{inventoryId:guid}/adjust")]
+        [Authorize(Roles = $"{Roles.Admin},{Roles.WarehouseManager}")]
+        public async Task<ApiResponse<InventoryResponse>> AdjustBranchInventory(
+            [FromRoute] Guid branchId,
+            [FromRoute] Guid inventoryId,
+            [FromBody] AdjustInventoryRequest request)
+        {
+            return await inventoryService.AdjustBranchInventory(branchId, inventoryId, request);
+        }
+
+        [HttpGet("branches/{branchId:guid}/{inventoryId:guid}/adjustments")]
+        [Authorize(Roles = $"{Roles.Admin},{Roles.WarehouseManager}")]
+        public async Task<PagedApiResponse<InventoryAdjustmentResponse>> GetBranchInventoryAdjustments(
+            [FromRoute] Guid branchId,
+            [FromRoute] Guid inventoryId,
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
+        {
+            return await inventoryService.GetBranchInventoryAdjustments(branchId, inventoryId, pageNumber, pageSize);
         }
     }
 }

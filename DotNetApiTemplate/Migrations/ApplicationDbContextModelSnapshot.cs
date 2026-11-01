@@ -419,6 +419,9 @@ namespace SupermarketERP.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<int>("MinimumQuantity")
                         .HasColumnType("int");
 

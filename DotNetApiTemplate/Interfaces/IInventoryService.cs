@@ -24,5 +24,17 @@ namespace SupermarketERP.Interfaces
         Task<ApiResponse<InventoryResponse>> AdjustWarehouseInventory(Guid warehouseId,Guid inventoryId, AdjustInventoryRequest request);
 
         Task<PagedApiResponse<InventoryAdjustmentResponse>> GetWarehouseInventoryAdjustments(Guid warehouseId, Guid inventoryId, int pageNumber = 1, int pageSize = 10);
+        Task<PagedApiResponse<InventoryResponse>> GetLowStockInventories(int pageNumber = 1, int pageSize = 10);
+        Task<PagedApiResponse<InventoryResponse>> GetWarehouseLowStockInventories(Guid warehouseId, int pageNumber = 1, int pageSize = 10);
+        Task<PagedApiResponse<InventoryResponse>> GetBranchLowStockInventories(Guid branchId, int pageNumber = 1, int pageSize = 10);
+
+        Task<PagedApiResponse<InventoryResponse>> GetInventoriesByProduct(Guid productId, int pageNumber = 1, int pageSize = 10);
+
+        Task<ApiResponse<InventoryResponse>> AdjustBranchInventory(Guid branchId, Guid inventoryId, AdjustInventoryRequest request);
+
+        Task<PagedApiResponse<InventoryAdjustmentResponse>> GetBranchInventoryAdjustments(Guid warehouseId, Guid inventoryId, int pageNumber = 1, int pageSize = 10);
+
+
+
     }
 }

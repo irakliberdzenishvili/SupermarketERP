@@ -10,8 +10,6 @@ public class InventoryAdjustmentResponse
 
     public Guid InventoryId { get; set; }
 
-    [ForeignKey(nameof(InventoryId))]
-    public Inventory Inventory { get; set; } = null!;
 
     [Required]
     public int QuantityChange { get; set; }

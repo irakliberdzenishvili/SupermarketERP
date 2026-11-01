@@ -152,7 +152,9 @@ public enum ErrorMessages
     AfterAdjustingQuantityIsNegativeItMustBePositiveOrZero = 94,
 
     ReasonIsRequiredForAdjustment = 95,
-    IntegerOverflow = 96
+    IntegerOverflow = 96,
+
+    lowStockInventoriesNotFound = 97
 
     #endregion
 }

@@ -278,7 +278,6 @@ namespace SupermarketERP.Services
             }
 
             var inventoryProductExists = await db.Inventories
-                .AsNoTracking()
                 .AnyAsync(i => i.ProductId == request.ProductId && i.WarehouseId == warehouseId);
 
             if (inventoryProductExists)
@@ -329,7 +328,6 @@ namespace SupermarketERP.Services
             }
 
             var inventory = await db.Inventories
-                .AsNoTracking()
                 .FirstOrDefaultAsync(i => i.Id == inventoryId && i.WarehouseId == warehouseId);
 
             if (inventory == null)
@@ -423,6 +421,282 @@ namespace SupermarketERP.Services
             {
                 IsSuccess = true,
                 Message = "Branch Inventories Retrieved"
+            };
+        }
+
+        public async Task<PagedApiResponse<InventoryResponse>> GetLowStockInventories(int pageNumber = 1, int pageSize = 10)
+        {
+            RequireAdmin();
+
+            var lowStockInventories = db.Inventories
+                .AsNoTracking()
+                .Where(i => i.Quantity <= i.MinimumQuantity);
+
+            if (lowStockInventories == null)
+            {
+                throw new UserFriendlyException(ErrorMessages.lowStockInventoriesNotFound);
+            }
+
+            var totalCount = await lowStockInventories.CountAsync();
+
+            var pagedQuery = await lowStockInventories
+                .AsNoTracking()
+                .OrderBy(i => i.CreatedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var mappedResponse = mapper.Map<List<InventoryResponse>>(pagedQuery);
+
+            return new PagedApiResponse<InventoryResponse>(
+                mappedResponse, totalCount, pageSize, pageNumber)
+            {
+                IsSuccess = true,
+                Message = "Low-stock inventories retrieved"
+            };
+        }
+
+        public async Task<PagedApiResponse<InventoryResponse>> GetWarehouseLowStockInventories(Guid warehouseId, int pageNumber = 1, int pageSize = 10)
+        {
+            await RequireWarehouseAccess(warehouseId);
+
+            if (pageNumber <= 0 || pageSize <= 0 || pageSize > 100)
+                throw new UserFriendlyException(ErrorMessages.InvalidPagination);
+
+            var warehouseExists = await db.Warehouses
+                .AsNoTracking()
+                .AnyAsync(w => w.Id == warehouseId);
+
+            if (!warehouseExists)
+            {
+                throw new UserFriendlyException(ErrorMessages.WarehouseNotFound);
+            }
+
+            var lowStockWarehouseInventories = db.Inventories
+                .AsNoTracking()
+                .Where(i => i.Quantity <= i.MinimumQuantity && i.WarehouseId == warehouseId);
+
+            if (lowStockWarehouseInventories == null)
+            {
+                throw new UserFriendlyException(ErrorMessages.lowStockInventoriesNotFound);
+            }
+
+            var totalCount = await lowStockWarehouseInventories.CountAsync();
+
+            var pagedQuery = await lowStockWarehouseInventories
+                .AsNoTracking()
+                .OrderBy(i => i.CreatedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var mappedResponse = mapper.Map<List<InventoryResponse>>(pagedQuery);
+
+            return new PagedApiResponse<InventoryResponse>(
+                mappedResponse, totalCount, pageSize, pageNumber)
+            {
+                IsSuccess = true,
+                Message = "Warehouse Low-stock inventories retrieved"
+            };
+        }
+
+        public async Task<PagedApiResponse<InventoryResponse>> GetBranchLowStockInventories(Guid branchId, int pageNumber = 1, int pageSize = 10)
+        {
+            await RequireBranchAccess(branchId);
+
+            if (pageNumber <= 0 || pageSize <= 0 || pageSize > 100)
+                throw new UserFriendlyException(ErrorMessages.InvalidPagination);
+
+            var warehouseExists = await db.Warehouses
+                .AsNoTracking()
+                .AnyAsync(w => w.Id == branchId);
+
+            if (!warehouseExists)
+            {
+                throw new UserFriendlyException(ErrorMessages.WarehouseNotFound);
+            }
+
+            var lowStockWarehouseInventories = db.Inventories
+                .AsNoTracking()
+                .Where(i => i.Quantity <= i.MinimumQuantity && i.BranchId == branchId);
+
+            if (lowStockWarehouseInventories == null)
+            {
+                throw new UserFriendlyException(ErrorMessages.lowStockInventoriesNotFound);
+            }
+
+            var totalCount = await lowStockWarehouseInventories.CountAsync();
+
+            var pagedQuery = await lowStockWarehouseInventories
+                .AsNoTracking()
+                .OrderBy(i => i.CreatedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var mappedResponse = mapper.Map<List<InventoryResponse>>(pagedQuery);
+
+            return new PagedApiResponse<InventoryResponse>(
+                mappedResponse, totalCount, pageSize, pageNumber)
+            {
+                IsSuccess = true,
+                Message = "Branch Low-stock inventories retrieved"
+            };
+        }
+
+        public async Task<PagedApiResponse<InventoryResponse>> GetInventoriesByProduct(Guid productId, int pageNumber = 1, int pageSize = 10)
+        {
+            RequireAdmin();
+
+            if (pageNumber <= 0 || pageSize <= 0 || pageSize > 100)
+                throw new UserFriendlyException(ErrorMessages.InvalidPagination);
+
+            var productExists = await db.Products.AnyAsync(p => p.Id == productId);
+
+            if (!productExists)
+            {
+                throw new UserFriendlyException(ErrorMessages.ProductNotFound);
+            }
+
+            var query = db.Inventories.Where(i => i.ProductId == productId);
+
+            var totalCount = await query.CountAsync();
+
+            var pageResponse = await query
+                .AsNoTracking()
+                .OrderBy(i => i.CreatedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var mappedResponse = mapper.Map<List<InventoryResponse>>(pageResponse);
+
+            return new PagedApiResponse<InventoryResponse>(
+                mappedResponse, totalCount, pageSize, pageNumber)
+            {
+                IsSuccess = true,
+                Message = "Inventories by product retrieved"
+            };
+        }
+
+        public async Task<ApiResponse<InventoryResponse>> AdjustBranchInventory(Guid branchId, Guid inventoryId, AdjustInventoryRequest request)
+        {
+            await RequireBranchAccess(branchId);
+
+            if (request.QuantityChange == 0)
+            {
+                throw new UserFriendlyException(ErrorMessages.MustBeNegativeOrPositive);
+            }
+
+
+            if (string.IsNullOrWhiteSpace(request.Reason))
+            {
+                throw new UserFriendlyException(ErrorMessages.ReasonIsRequiredForAdjustment);
+            }
+
+            var branchExists = await db.Branches
+                .AsNoTracking()
+                .AnyAsync(w => w.Id == branchId);
+
+            if (!branchExists)
+            {
+                throw new UserFriendlyException(ErrorMessages.BranchNotFound);
+            }
+
+            var inventory = await db.Inventories
+                .FirstOrDefaultAsync(i => i.Id == inventoryId && i.BranchId == branchId);
+
+            if (inventory == null)
+            {
+                throw new UserFriendlyException(ErrorMessages.InventoryNotFound);
+            }
+
+            var adjustedInventoryHistory = mapper.Map<InventoryAdjustment>(request);
+
+            var newQuantity = 0;
+
+            try
+            {
+
+                checked
+                {
+                    newQuantity = inventory.Quantity + request.QuantityChange;
+
+                    if (newQuantity < 0)
+                    {
+                        throw new UserFriendlyException(ErrorMessages.AfterAdjustingQuantityIsNegativeItMustBePositiveOrZero);
+                    }
+                }
+
+            }
+            catch (OverflowException ex)
+            {
+                throw new UserFriendlyException(ErrorMessages.IntegerOverflow);
+            }
+
+
+            adjustedInventoryHistory.InventoryId = inventoryId;
+            adjustedInventoryHistory.PerformedByUserId = CurrentUserId;
+
+            inventory.Quantity = newQuantity;
+            inventory.UpdatedAt = DateTime.UtcNow;
+
+            await db.InventoryAdjustments.AddAsync(adjustedInventoryHistory);
+            await db.SaveChangesAsync();
+
+            var mappedResponse = mapper.Map<InventoryResponse>(inventory);
+
+            return new ApiResponse<InventoryResponse>
+            {
+                Data = mappedResponse,
+                IsSuccess = true,
+                Message = "Inventory Adjusted"
+            };
+        }
+
+        public async Task<PagedApiResponse<InventoryAdjustmentResponse>> GetBranchInventoryAdjustments(Guid branchId, Guid inventoryId, int pageNumber = 1, int pageSize = 10)
+        {
+            await RequireBranchAccess(branchId);
+
+            if (pageNumber <= 0 || pageSize <= 0 || pageSize > 100)
+                throw new UserFriendlyException(ErrorMessages.InvalidPagination);
+
+            var branchExists = await db.Warehouses
+                .AsNoTracking()
+                .AnyAsync(w => w.Id == branchId);
+
+            if (!branchExists)
+                throw new UserFriendlyException(ErrorMessages.BranchNotFound);
+
+            var inventoryExists = await db.Inventories
+                .AsNoTracking()
+                .AnyAsync(i => i.Id == inventoryId);
+
+            if (!inventoryExists)
+            {
+                throw new UserFriendlyException(ErrorMessages.InventoryNotFound);
+            }
+
+            var query = db.InventoryAdjustments
+                .AsNoTracking()
+                .Where(ia => ia.InventoryId == inventoryId);
+
+            var totalCount = await query.CountAsync();
+
+            var pagedQuery = await query
+                .AsNoTracking()
+                .OrderBy(ia => ia.CreatedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var mappedResponse = mapper.Map<List<InventoryAdjustmentResponse>>(pagedQuery);
+
+            return new PagedApiResponse<InventoryAdjustmentResponse>(
+                mappedResponse, totalCount, pageSize, pageNumber)
+            {
+                IsSuccess = true,
+                Message = "Branch inventory adjustments retrieved"
             };
         }
     }

@@ -1,11 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using DotNetApiTemplate.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
 namespace SupermarketERP.Models.Data
 {
     [Index(nameof(ProductId), nameof(WarehouseId), IsUnique = true)]
     [Index(nameof(ProductId), nameof(BranchId), IsUnique = true)]
-    public class Inventory
+    public class Inventory : ISoftDeletable
     {
         [Key]
         public Guid Id { get; set; } = Guid.CreateVersion7();
@@ -28,8 +29,8 @@ namespace SupermarketERP.Models.Data
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; }
 
+        public bool IsDeleted { get; set; }
+
         public ICollection<InventoryAdjustment> InventoryAdjustments { get; set; }
-
-
     }
 }
