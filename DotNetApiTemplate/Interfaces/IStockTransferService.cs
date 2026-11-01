@@ -7,5 +7,6 @@ namespace SupermarketERP.Interfaces
     public interface IStockTransferService
     {
         Task<ApiResponse<StockTransferResponse>> CreateStockTransfer(CreateStockTransferRequest request);
+        Task<ApiResponse<StockTransferResponse>> ApproveStockTransfer(Guid transferId);
     }
 }

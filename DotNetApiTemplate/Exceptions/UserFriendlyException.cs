@@ -158,7 +158,14 @@ public enum ErrorMessages
 
     IdsAreRequired = 98,
 
-    WarehouseNotAssignedToBranch = 99
+    WarehouseNotAssignedToBranch = 99,
+
+    TransferNotFound = 100,
+
+    NotEnoughMaterialForTransfer = 101,
+
+    TransferAlreadyApproved = 102,
+    TransferMustBePending = 103
 
     #endregion
 }

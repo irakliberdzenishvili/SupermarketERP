@@ -4,6 +4,7 @@ using DotNetApiTemplate.Helpers;
 using DotNetApiTemplate.Models.Response;
 using Microsoft.EntityFrameworkCore;
 using SupermarketERP.Constants;
+using SupermarketERP.Enums;
 using SupermarketERP.Exceptions;
 using SupermarketERP.Interfaces;
 using SupermarketERP.Models.Data;
@@ -121,6 +122,58 @@ namespace SupermarketERP.Services
                 Data = mappedResponse,
                 IsSuccess = true,
                 Message = "Stock transfer requested successfully"
+            };
+        }
+
+        public async Task<ApiResponse<StockTransferResponse>> ApproveStockTransfer(Guid transferId)
+        {
+            if (transferId == Guid.Empty) { 
+                throw new UserFriendlyException(ErrorMessages.IdsAreRequired);
+            }
+
+            var transfer = await db.StockTransfers.FirstOrDefaultAsync(t => t.Id == transferId);
+
+            if (transfer == null)
+            {
+                throw new UserFriendlyException(ErrorMessages.TransferNotFound);
+            }
+
+            await RequireWarehouseAccess(transfer.FromWarehouseId);
+
+            if (transfer.Status != Enums.StockTransferStatus.Pending)
+            {
+                throw new UserFriendlyException(ErrorMessages.TransferMustBePending);
+            }
+
+            var warehouse = await db.Warehouses.FirstOrDefaultAsync(w => w.Id == transfer.FromWarehouseId);
+
+            if (warehouse == null)
+            {
+                throw new UserFriendlyException(ErrorMessages.WarehouseNotFound);
+            }
+
+            var affectedRows = await db.StockTransfers
+               .Where(t => t.Id == transferId &&
+                t.Status == StockTransferStatus.Pending)
+                    .ExecuteUpdateAsync(setter => setter
+                    .SetProperty(t => t.Status, Enums.StockTransferStatus.Approved)
+                    .SetProperty(t => t.ApprovedByUserId, CurrentUserId)
+                    .SetProperty(t => t.ApprovedAt, DateTime.UtcNow));
+
+            if (affectedRows == 0)
+            {
+                throw new UserFriendlyException(ErrorMessages.TransferMustBePending);
+            }
+
+            await db.Entry(transfer).ReloadAsync();
+
+            var mappedResponse = mapper.Map<StockTransferResponse>(transfer);
+
+            return new ApiResponse<StockTransferResponse>
+            {
+                Data = mappedResponse,
+                IsSuccess = true,
+                Message = "Stock transfer approved successfully"
             };
         }
     }

@@ -20,5 +20,12 @@ namespace SupermarketERP.Controllers
         {
             return await stockTransferService.CreateStockTransfer(request);
         }
+
+        [HttpPatch("{transferId:guid}/approve")]
+        [Authorize(Roles = $"{Roles.Admin},{Roles.WarehouseManager}")]
+        public async Task<ApiResponse<StockTransferResponse>> CreateStockTransfer([FromRoute] Guid transferId)
+        {
+            return await stockTransferService.ApproveStockTransfer(transferId);
+        }
     }
 }
