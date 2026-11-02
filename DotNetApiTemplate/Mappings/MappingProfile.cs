@@ -66,6 +66,12 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.IsActive,
                 opt => opt.Ignore());
 
+        CreateMap<Branch, BranchDetailsResponse>()
+    .ForMember(dest => dest.IsManager,
+        opt => opt.Ignore())
+    .ForMember(dest => dest.IsAdmin,
+        opt => opt.Ignore());
+
         #endregion
 
         #region BRANCH MANAGERS
