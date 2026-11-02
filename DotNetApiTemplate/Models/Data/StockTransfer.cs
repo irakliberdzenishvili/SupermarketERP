@@ -41,6 +41,10 @@ namespace SupermarketERP.Models.Data
 
         public string? ReceivedByUserId { get; set; }
 
+        public string? RejectedByUserId { get; set; }
+
+        public string? CancelledByUserId { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime? ApprovedAt { get; set; }
@@ -48,5 +52,10 @@ namespace SupermarketERP.Models.Data
         public DateTime? DispatchedAt { get; set; }
 
         public DateTime? ReceivedAt { get; set; }
+
+        public DateTime? RejectedAt { get; set; }
+        public DateTime? CancelledAt { get; set; }
+
+
     }
 }

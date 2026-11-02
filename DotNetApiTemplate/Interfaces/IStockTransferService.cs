@@ -8,5 +8,8 @@ namespace SupermarketERP.Interfaces
     {
         Task<ApiResponse<StockTransferResponse>> CreateStockTransfer(CreateStockTransferRequest request);
         Task<ApiResponse<StockTransferResponse>> ApproveStockTransfer(Guid transferId);
+        Task<ApiResponse<StockTransferResponse>> RejectStockTransfer(Guid transferId);
+        Task<ApiResponse<StockTransferResponse>> CancelStockTransfer(Guid transferId);
+
     }
 }

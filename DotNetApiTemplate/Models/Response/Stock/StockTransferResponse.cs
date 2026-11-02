@@ -27,6 +27,11 @@ namespace SupermarketERP.Models.Response.Stock
 
         public string? ReceivedByUserId { get; set; }
 
+        public string? RejectedByUserId { get; set; }
+
+        public string? CancelledByUserId { get; set; }
+
+
         public DateTime CreatedAt { get; set; }
 
         public DateTime? ApprovedAt { get; set; }
@@ -34,5 +39,10 @@ namespace SupermarketERP.Models.Response.Stock
         public DateTime? DispatchedAt { get; set; }
 
         public DateTime? ReceivedAt { get; set; }
+
+        public DateTime? RejectedAt { get; set; }
+        public DateTime? CancelledAt { get; set; }
+
+
     }
 }

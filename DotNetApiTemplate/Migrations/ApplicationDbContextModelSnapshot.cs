@@ -555,6 +555,12 @@ namespace SupermarketERP.Migrations
                     b.Property<string>("ApprovedByUserId")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CancelledByUserId")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -577,6 +583,12 @@ namespace SupermarketERP.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("ReceivedByUserId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("RejectedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RejectedByUserId")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("RequestedByUserId")

@@ -165,7 +165,9 @@ public enum ErrorMessages
     NotEnoughMaterialForTransfer = 101,
 
     TransferAlreadyApproved = 102,
-    TransferMustBePending = 103
+    TransferMustBePending = 103,
+
+    AfterTransferingWarehouseQuantityIsBelowZero = 104
 
     #endregion
 }

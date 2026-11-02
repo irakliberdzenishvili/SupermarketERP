@@ -27,5 +27,19 @@ namespace SupermarketERP.Controllers
         {
             return await stockTransferService.ApproveStockTransfer(transferId);
         }
+
+        [HttpPatch("{transferId:guid}/reject")]
+        [Authorize(Roles = $"{Roles.Admin},{Roles.WarehouseManager}")]
+        public async Task<ApiResponse<StockTransferResponse>> RejectStockTransfer([FromRoute] Guid transferId)
+        {
+            return await stockTransferService.RejectStockTransfer(transferId);
+        }
+
+        [HttpPatch("{transferId:guid}/cancel")]
+        [Authorize(Roles = $"{Roles.Admin},{Roles.BranchManager}")]
+        public async Task<ApiResponse<StockTransferResponse>> CancelStockTransfer([FromRoute] Guid transferId)
+        {
+            return await stockTransferService.CancelStockTransfer(transferId);
+        }
     }
 }
