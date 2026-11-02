@@ -22,7 +22,7 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.IsManager,
                 opt => opt.Ignore())
             .ForMember(dest => dest.IsAdmin,
-                opt => opt.MapFrom(src => src.Workers));
+                opt => opt.Ignore());
 
         CreateMap<CreateBranchRequest, Branch>()
             .ForMember(dest => dest.Id,
@@ -144,44 +144,54 @@ public class MappingProfile : Profile
         #region PRODUCTS
 
         CreateMap<Product, ProductResponse>();
+
         CreateMap<List<Product>, ProductResponse>();
+
         CreateMap<CreateProductRequest, Product>();
+
         CreateMap<UpdateProductRequest, Product>()
-    .ForMember(dest => dest.Id, opt => opt.Ignore())
-    .ForMember(dest => dest.SKU, opt => opt.Ignore())
-    .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
-    .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
-    .ForMember(dest => dest.IsDeleted, opt => opt.Ignore())
-    .ForMember(dest => dest.IsActive, opt => opt.Ignore());
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.SKU, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+            .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
+            .ForMember(dest => dest.IsDeleted, opt => opt.Ignore())
+            .ForMember(dest => dest.IsActive, opt => opt.Ignore());
 
         CreateMap<ChangeProductStatusRequest, Product>()
-    .ForMember(dest => dest.Id, opt => opt.Ignore())
-    .ForMember(dest => dest.SKU, opt => opt.Ignore())
-    .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
-    .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
-    .ForMember(dest => dest.IsDeleted, opt => opt.Ignore())
-    .ForMember(dest => dest.IsActive, opt => opt.Ignore())
-    .ForMember(dest => dest.Category, opt => opt.Ignore())
-    .ForMember(dest => dest.Barcode, opt => opt.Ignore())
-    .ForMember(dest => dest.Description, opt => opt.Ignore());
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.SKU, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+            .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
+            .ForMember(dest => dest.IsDeleted, opt => opt.Ignore())
+            .ForMember(dest => dest.IsActive, opt => opt.Ignore())
+            .ForMember(dest => dest.Category, opt => opt.Ignore())
+            .ForMember(dest => dest.Barcode, opt => opt.Ignore())
+            .ForMember(dest => dest.Description, opt => opt.Ignore());
+
         #endregion
 
         #region INVENTORY
 
         CreateMap<Inventory, InventoryResponse>();
-        CreateMap<List<Inventory>, InventoryResponse>();
-        CreateMap<CreateInventoryRequest, Inventory>();
-        CreateMap<AdjustInventoryRequest, InventoryAdjustment>();
-        CreateMap<List<InventoryAdjustment>, InventoryAdjustmentResponse>();
-        CreateMap<InventoryAdjustment, InventoryAdjustmentResponse>();
 
+        CreateMap<List<Inventory>, InventoryResponse>();
+
+        CreateMap<CreateInventoryRequest, Inventory>();
+
+        CreateMap<AdjustInventoryRequest, InventoryAdjustment>();
+
+        CreateMap<List<InventoryAdjustment>, InventoryAdjustmentResponse>();
+
+        CreateMap<InventoryAdjustment, InventoryAdjustmentResponse>();
 
         #endregion
 
         #region STOCK
 
         CreateMap<StockTransfer, StockTransferResponse>();
+
         CreateMap<List<StockTransfer>, StockTransferResponse>();
+
         CreateMap<CreateStockTransferRequest, StockTransfer>();
 
         #endregion
