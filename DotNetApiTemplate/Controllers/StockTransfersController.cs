@@ -41,5 +41,12 @@ namespace SupermarketERP.Controllers
         {
             return await stockTransferService.CancelStockTransfer(transferId);
         }
+
+        [HttpPatch("{transferId:guid}/dispatch")]
+        [Authorize(Roles = $"{Roles.Admin},{Roles.WarehouseManager}")]
+        public async Task<ApiResponse<StockTransferResponse>> DispatchStockTransfer([FromRoute] Guid transferId)
+        {
+            return await stockTransferService.DispatchStockTransfer(transferId);
+        }
     }
 }

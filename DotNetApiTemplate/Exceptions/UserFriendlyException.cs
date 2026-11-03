@@ -167,7 +167,11 @@ public enum ErrorMessages
     TransferAlreadyApproved = 102,
     TransferMustBePending = 103,
 
-    AfterTransferingWarehouseQuantityIsBelowZero = 104
+    AfterTransferingWarehouseQuantityIsBelowZero = 104,
+
+    BranchManagerNotFound = 105,
+
+    TransferMustBeApproved = 106
 
     #endregion
 }
