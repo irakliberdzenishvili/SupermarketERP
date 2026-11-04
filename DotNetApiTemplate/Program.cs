@@ -110,12 +110,13 @@ builder.Services.AddScoped<IStockTransferService, StockTransferService>();
 
 builder.Services.AddRateLimiter(options =>
 {
-    AuthRateLimitPolicy.RegisterPolicies(options);
+    AuthRateLimitPolicy.RegisterPolicy(options);
     BranchRateLimitPolicy.Register(options);
     WarehouseRateLimitPolicy.Register(options);
     EmployeeRateLimitPolicy.Register(options);
     ProductRateLimitPolicy.Register(options);
     InventoryRateLimitPolicy.Register(options);
+    StockRateLimitPolicy.Register(options);
 
 
     options.RejectionStatusCode =

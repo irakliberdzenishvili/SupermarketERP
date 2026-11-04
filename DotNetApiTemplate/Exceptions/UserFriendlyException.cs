@@ -171,7 +171,10 @@ public enum ErrorMessages
 
     BranchManagerNotFound = 105,
 
-    TransferMustBeApproved = 106
+    TransferMustBeApproved = 106,
+    TransferMustBeDispatched = 107,
+    NotEnoughMaterialToRecieve = 108,
+    FailedToUpdateInventory = 109
 
     #endregion
 }

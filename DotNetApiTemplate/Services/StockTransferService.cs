@@ -11,6 +11,7 @@ using SupermarketERP.Models.Data;
 using SupermarketERP.Models.Request.Stock;
 using SupermarketERP.Models.Response;
 using SupermarketERP.Models.Response.Stock;
+using System.Security.Cryptography.Xml;
 
 namespace SupermarketERP.Services
 {
@@ -430,14 +431,156 @@ namespace SupermarketERP.Services
             };
         }
 
-        public Task<ApiResponse<StockTransferResponse>> ReceiveStockTransfer(Guid transferId)
+        public async Task<ApiResponse<StockTransferResponse>> ReceiveStockTransfer(Guid transferId)
         {
-            throw new NotImplementedException();
+            if (transferId == Guid.Empty)
+            {
+                throw new UserFriendlyException(ErrorMessages.IdsAreRequired);
+            }
+
+            var transfer = await db.StockTransfers.FirstOrDefaultAsync(t => t.Id == transferId);
+
+            if (transfer == null)
+            {
+                throw new UserFriendlyException(ErrorMessages.TransferNotFound);
+            }
+
+            await RequireBranchAccess(transfer.ToBranchId);
+
+            if (transfer.Status != Enums.StockTransferStatus.Dispatched)
+            {
+                throw new UserFriendlyException(ErrorMessages.TransferMustBeDispatched);
+            }
+
+            var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
+
+
+            try 
+            { 
+
+            var inventoryBranch = await db.Inventories
+                .AsNoTracking()
+                .FirstOrDefaultAsync(i => i.BranchId == transfer.ToBranchId && i.ProductId == transfer.ProductId);
+
+
+            // if branch inventory is not available, create a new one
+            if (inventoryBranch == null)
+            {
+                var inventoryBranchRecord = new Inventory()
+                {
+                    BranchId = transfer.ToBranchId,
+                    ProductId = transfer.ProductId,
+                    Quantity = transfer.Quantity,
+                    MinimumQuantity = 20,
+                    
+                };
+
+                await db.AddAsync(inventoryBranchRecord);
+                await db.SaveChangesAsync();
+
+                inventoryBranch = inventoryBranchRecord;
+            }
+            
+
+                var inventoryBranchAffectedRows = await db.Inventories
+                       .Where(i => i.Id == inventoryBranch.Id)
+                       .ExecuteUpdateAsync(setters => setters
+                       .SetProperty(p => p.Quantity, i => i.Quantity + transfer.Quantity)
+                       );
+
+                if (inventoryBranchAffectedRows == 0)
+                {
+                    throw new UserFriendlyException(ErrorMessages.FailedToUpdateInventory);
+                }
+
+
+                var stockTransferAffectedRows = await db.StockTransfers
+               .Where(t => t.Id == transferId &&
+                t.Status == StockTransferStatus.Dispatched)
+                    .ExecuteUpdateAsync(setter => setter
+                    .SetProperty(t => t.Status, Enums.StockTransferStatus.Received)
+                    .SetProperty(t => t.ReceivedByUserId, CurrentUserId)
+                    .SetProperty(t => t.ReceivedAt, DateTime.UtcNow));
+
+                if (stockTransferAffectedRows == 0)
+                {
+                    throw new UserFriendlyException(ErrorMessages.TransferMustBeDispatched);
+                }
+
+                await transaction.CommitAsync();
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+
+            await db.Entry(transfer).ReloadAsync();
+
+            var mappedResponse = mapper.Map<StockTransferResponse>(transfer);
+
+            return new ApiResponse<StockTransferResponse>
+            {
+                Data = mappedResponse,
+                IsSuccess = true,
+                Message = "Stock transfer recieved successfully"
+            };
         }
 
-        public Task<ApiResponse<StockTransferResponse>> GetStockTransferById(Guid transferId)
+        public async Task<ApiResponse<StockTransferResponse>> GetStockTransferById(Guid transferId)
         {
-            throw new NotImplementedException();
+
+            if (transferId == Guid.Empty)
+            {
+                throw new UserFriendlyException(ErrorMessages.IdsAreRequired);
+            }
+
+            DenyAccess();
+
+
+            var query = db.StockTransfers.AsNoTracking().Where(t => t.Id == transferId);
+
+            // admin has access to all stock transfers
+
+            if (CurrentUserRole == Roles.BranchManager)
+            {
+                var BranchManager = await db.BranchManagers.FirstOrDefaultAsync(b => b.UserId == CurrentUserId);
+
+                if (BranchManager == null)
+                {
+                    throw new UserFriendlyException(ErrorMessages.BranchManagerNotFound);
+                }
+
+                query = query.Where(q => q.ToBranchId == BranchManager.BranchId);
+            }
+
+            if (CurrentUserRole == Roles.WarehouseManager)
+            {
+                var WarehouseManager = await db.WarehouseManagers.FirstOrDefaultAsync(b => b.UserId == CurrentUserId);
+
+                if (WarehouseManager == null)
+                {
+                    throw new UserFriendlyException(ErrorMessages.WarehouseManagerNotFound);
+                }
+
+                query = query.Where(q => q.FromWarehouseId == WarehouseManager.WarehouseId);
+            }
+
+            var result = await query.FirstOrDefaultAsync();
+
+            if (result == null)
+            {
+                throw new UserFriendlyException(ErrorMessages.TransferNotFound);
+            }
+
+            var mappedResponse = mapper.Map<StockTransferResponse>(result);
+
+            return new ApiResponse<StockTransferResponse>
+            {
+                Data = mappedResponse,
+                IsSuccess = true,
+                Message = "Stock transfer retrieved successfully"
+            };
         }
     }
 }

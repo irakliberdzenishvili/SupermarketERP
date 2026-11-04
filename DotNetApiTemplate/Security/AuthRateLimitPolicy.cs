@@ -19,7 +19,7 @@ public static class AuthRateLimitPolicy
     public const string Logout = "AuthLogout";
     public const string Me = "AuthMe";
 
-    public static void RegisterPolicies(RateLimiterOptions options)
+    public static void RegisterPolicy(RateLimiterOptions options)
     {
         AddPolicy(options, Register, 5, 10);
         AddPolicy(options, Login, 10, 1);
