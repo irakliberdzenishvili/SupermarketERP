@@ -4,10 +4,13 @@ using SupermarketERP.Models.Data;
 using SupermarketERP.Models.Request;
 using SupermarketERP.Models.Request.Branch;
 using SupermarketERP.Models.Request.Inventory;
+using SupermarketERP.Models.Request.Sales;
 using SupermarketERP.Models.Request.Stock;
 using SupermarketERP.Models.Response;
 using SupermarketERP.Models.Response.BranchManagerResponse;
 using SupermarketERP.Models.Response.Employee;
+using SupermarketERP.Models.Response.Payments;
+using SupermarketERP.Models.Response.Sales;
 using SupermarketERP.Models.Response.Stock;
 
 namespace DotNetApiTemplate.Mappings;
@@ -199,6 +202,25 @@ public class MappingProfile : Profile
         CreateMap<List<StockTransfer>, StockTransferResponse>();
 
         CreateMap<CreateStockTransferRequest, StockTransfer>();
+
+        #endregion
+
+        #region SALES
+
+        CreateMap<Sale, SaleResponse>();
+
+        CreateMap<SaleItem, SaleItemResponse>();
+
+        CreateMap<Payment, PaymentResponse>();
+
+        CreateMap<AddSaleItemRequest, SaleItem>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.SaleId, opt => opt.Ignore())
+            .ForMember(dest => dest.UnitPrice, opt => opt.Ignore())
+            .ForMember(dest => dest.TotalPrice, opt => opt.Ignore())
+            .ForMember(dest => dest.DiscountAmount, opt => opt.Ignore())
+            .ForMember(dest => dest.Sale, opt => opt.Ignore())
+            .ForMember(dest => dest.Product, opt => opt.Ignore());
 
         #endregion
     }

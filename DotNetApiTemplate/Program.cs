@@ -106,6 +106,7 @@ builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
 builder.Services.AddScoped<IStockTransferService, StockTransferService>();
+builder.Services.AddScoped<ISaleService, SaleService>();
 
 
 builder.Services.AddRateLimiter(options =>

@@ -174,7 +174,10 @@ public enum ErrorMessages
     TransferMustBeApproved = 106,
     TransferMustBeDispatched = 107,
     NotEnoughMaterialToRecieve = 108,
-    FailedToUpdateInventory = 109
+    FailedToUpdateInventory = 109,
+    SaleDraftNotFound = 110,
+    SaleItemNotFound = 111,
+    SaleMustBeDraft = 112
 
     #endregion
 }

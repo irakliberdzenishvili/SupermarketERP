@@ -49,7 +49,16 @@ public class ApplicationDbContext : IdentityDbContext<User>
 
     public DbSet<StockTransfer> StockTransfers
         => Set<StockTransfer>();
-         
+
+    public DbSet<Sale> Sales
+        => Set<Sale>();
+
+    public DbSet<SaleItem> SaleItems
+        => Set<SaleItem>();
+
+    public DbSet<Payment> Payments
+        => Set<Payment>();
+
 
     #endregion
 

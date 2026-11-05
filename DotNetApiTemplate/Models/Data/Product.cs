@@ -10,7 +10,7 @@ namespace SupermarketERP.Models.Data
     public class Product : ISoftDeletable
     {
         [Key]
-        public Guid Id { get; set; } = Guid.CreateVersion7();
+        public Guid Id { get; set; } = Guid.CreateVersion7();  
 
         [Required]
         public string SKU { get; set; } = GenerateSku();
