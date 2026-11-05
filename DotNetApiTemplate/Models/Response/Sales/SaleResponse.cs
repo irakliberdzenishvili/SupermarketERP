@@ -17,6 +17,8 @@ namespace SupermarketERP.Models.Response.Sales
         public SaleStatus Status { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? CompletedAt { get; set; }
+        public decimal? Change { get; set; }
+
         public List<SaleItemResponse> Items { get; set; } = new();
         public List<PaymentResponse> Payments { get; set; } = new();
     }

@@ -222,6 +222,10 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.Sale, opt => opt.Ignore())
             .ForMember(dest => dest.Product, opt => opt.Ignore());
 
+        CreateMap<UpdateSaleItemRequest, SaleItem>();
+        CreateMap<CreatePaymentRequest, Sale>();
+
+
         #endregion
     }
 }

@@ -177,7 +177,11 @@ public enum ErrorMessages
     FailedToUpdateInventory = 109,
     SaleDraftNotFound = 110,
     SaleItemNotFound = 111,
-    SaleMustBeDraft = 112
+    SaleMustBeDraft = 112,
+
+    NotEnoughMoney = 113,
+    NotEnoughInStock = 114,
+    InventoriesNotFound = 115
 
     #endregion
 }

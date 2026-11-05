@@ -1,9 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using DotNetApiTemplate.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace SupermarketERP.Models.Data
 {
     [Index(nameof(SaleId), nameof(ProductId), IsUnique = true)]
-    public class SaleItem
+    public class SaleItem : ISoftDeletable
     {
         public Guid Id { get; set; }
         public Guid SaleId { get; set; }
@@ -15,5 +16,8 @@ namespace SupermarketERP.Models.Data
 
         public Sale Sale { get; set; } = null!;
         public Product Product { get; set; } = null!;
+
+        public bool IsDeleted { get; set; }
+
     }
 }

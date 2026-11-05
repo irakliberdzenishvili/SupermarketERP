@@ -1,4 +1,5 @@
-﻿using DotNetApiTemplate.Models.Data;
+﻿using DotNetApiTemplate.Interfaces;
+using DotNetApiTemplate.Models.Data;
 using Microsoft.EntityFrameworkCore;
 using SupermarketERP.Enums;
 using System.Net.ServerSentEvents;
@@ -6,7 +7,7 @@ using System.Net.ServerSentEvents;
 namespace SupermarketERP.Models.Data
 {
     [Index(nameof(SaleNumber), IsUnique = true)]
-    public class Sale
+    public class Sale : ISoftDeletable
     {
         public Guid Id { get; set; }
         public string SaleNumber { get; set; } = string.Empty;
@@ -23,5 +24,6 @@ namespace SupermarketERP.Models.Data
         public User Cashier { get; set; } = null!;
         public ICollection<SaleItem> Items { get; set; } = new List<SaleItem>();
         public ICollection<Payment> Payments { get; set; } = new List<Payment>();
+        public bool IsDeleted { get; set; }
     }
 }
