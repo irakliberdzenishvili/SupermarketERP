@@ -8,15 +8,13 @@ namespace SupermarketERP.Interfaces
     public interface ISaleService
     {
         Task<ApiResponse<SaleResponse>> CreateSaleDraft(Guid branchId);
-
         Task<ApiResponse<SaleResponse>> CreateSaleItem(Guid saleId, AddSaleItemRequest request);
-
         Task<ApiResponse<SaleResponse>> UpdateSaleItem(Guid saleId, Guid itemId, UpdateSaleItemRequest request);
-
         Task<ApiResponse<SaleResponse>> DeleteSaleItem(Guid saleId, Guid itemId);
-
         Task<ApiResponse<SaleResponse>> CreatePayment(Guid saleId, CreatePaymentRequest request);
-
         Task<PagedApiResponse<SaleResponse>> GetSales(GetSalesRequest request, int pageNumber = 1, int pageSize = 10);
+        Task<ApiResponse<SaleResponse>> GetSaleById(Guid saleId);
+        Task<ApiResponse<SaleResponse>> CancelSale(Guid saleId);
+        Task<ApiResponse<SaleResponse>> GetReceipt(Guid saleId);
     }
 }

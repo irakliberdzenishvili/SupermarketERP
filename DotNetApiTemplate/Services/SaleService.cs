@@ -288,7 +288,7 @@ namespace SupermarketERP.Services
 
             if (sale == null)
             {
-                throw new UserFriendlyException(ErrorMessages.SaleDraftNotFound);
+                throw new UserFriendlyException(ErrorMessages.SaleNotFound);
             }
 
             var SaleItem = sale.Items.FirstOrDefault(s => s.SaleId == saleId);
@@ -386,12 +386,16 @@ namespace SupermarketERP.Services
 
         public async Task<PagedApiResponse<SaleResponse>> GetSales(GetSalesRequest request, int pageNumber = 1, int pageSize = 10)
         {
-            RequireAdmin(); // this endpoints is for admin only
+            RequireAdmin(); // this endpoint is for admin only
 
             if (pageNumber <= 0 || pageSize <= 0 || pageSize > 100)
                 throw new UserFriendlyException(ErrorMessages.InvalidPagination);
 
-            var query = db.Sales.AsNoTracking();
+            var query = db.Sales
+                .Include(s => s.Payments)
+                .Include(s => s.Items)
+                .AsNoTracking();
+                
 
             if (!string.IsNullOrWhiteSpace(request.Search))
             {
@@ -440,6 +444,129 @@ namespace SupermarketERP.Services
             {
                 IsSuccess = true,
                 Message = "Stock transfers retrieved"
+            };
+        }
+
+        public async Task<ApiResponse<SaleResponse>> GetSaleById(Guid saleId)
+        {
+            if (saleId == Guid.Empty)
+            {
+                throw new UserFriendlyException(ErrorMessages.IdsAreRequired);
+            }
+
+            var sale = await db.Sales
+                .AsNoTracking()
+                .Include(s => s.Items)
+                .Include(p => p.Payments)
+                .Include(u => u.Cashier)
+                .Include(b => b.Branch)
+                .FirstOrDefaultAsync(s => s.Id == saleId);
+
+            if (sale == null)
+            {
+                throw new UserFriendlyException(ErrorMessages.SaleNotFound);
+            }
+
+            await HasAccess(sale.BranchId);
+
+            var mappedResponse = mapper.Map<SaleResponse>(sale);
+
+            mappedResponse.CashierName = sale.Cashier.Email!;
+            mappedResponse.CashierId = sale.CashierId;
+            mappedResponse.BranchName = sale.Branch.Name;
+            mappedResponse.BranchId = sale.BranchId;
+            
+            return new ApiResponse<SaleResponse>
+            {
+                Data = mappedResponse,
+                IsSuccess = true,
+                Message = "Sale found"
+            };
+        }
+
+        public async Task<ApiResponse<SaleResponse>> CancelSale(Guid saleId)
+        {
+            if (saleId == Guid.Empty)
+            {
+                throw new UserFriendlyException(ErrorMessages.IdsAreRequired);
+            }
+
+            var sale = await db.Sales
+                .Include(s => s.Items)
+                .Include(p => p.Payments)
+                .Include(u => u.Cashier)
+                .Include(b => b.Branch)
+                .FirstOrDefaultAsync(s => s.Id == saleId);
+
+            if (sale == null)
+            {
+                throw new UserFriendlyException(ErrorMessages.SaleNotFound);
+            }
+
+            await HasAccess(sale.BranchId);
+
+            if (sale.Status != Enums.SaleStatus.Draft)
+            {
+                throw new UserFriendlyException(ErrorMessages.SaleMustBeDraft);
+            }
+
+            sale.Status = Enums.SaleStatus.Cancelled;
+
+            await db.SaveChangesAsync();
+
+            var mappedResponse = mapper.Map<SaleResponse>(sale);
+
+            return new ApiResponse<SaleResponse>
+            {
+                Data = mappedResponse,
+                IsSuccess = true,
+                Message = "Sale cancelled"
+            };
+        }
+
+        public async Task<ApiResponse<SaleResponse>> GetReceipt(Guid saleId)
+        {
+            if (saleId == Guid.Empty)
+            {
+                throw new UserFriendlyException(ErrorMessages.IdsAreRequired);
+            }
+
+            var sale = await db.Sales
+                .AsNoTracking()
+                .Include(s => s.Items)
+                .Include(p => p.Payments)
+                .Include(u => u.Cashier)
+                .Include(b => b.Branch)
+                .FirstOrDefaultAsync(s => s.Id == saleId && s.Status == Enums.SaleStatus.Completed);
+
+            if (sale == null)
+            {
+                throw new UserFriendlyException(ErrorMessages.SaleNotFound);
+            }
+
+            await HasAccess(sale.BranchId);
+
+            var payment = sale.Payments.FirstOrDefault(s => s.SaleId == saleId && s.Status == Enums.PaymentStatus.Completed);
+
+            if (payment == null)
+            {
+                throw new UserFriendlyException(ErrorMessages.PaymentNotFound);
+            }
+
+            var mappedResponse = mapper.Map<SaleResponse>(sale);
+
+            mappedResponse.CashierName = sale.Cashier.Email!;
+            mappedResponse.CashierId = sale.CashierId;
+            mappedResponse.BranchName = sale.Branch.Name;
+            mappedResponse.BranchId = sale.BranchId;
+
+            mappedResponse.Change = payment.Amount - sale.TotalAmount;
+
+            return new ApiResponse<SaleResponse>
+            {
+                Data = mappedResponse,
+                IsSuccess = true,
+                Message = "Sale receipt found"
             };
         }
     }

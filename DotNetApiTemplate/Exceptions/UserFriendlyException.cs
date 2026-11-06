@@ -181,7 +181,12 @@ public enum ErrorMessages
 
     NotEnoughMoney = 113,
     NotEnoughInStock = 114,
-    InventoriesNotFound = 115
+    InventoriesNotFound = 115,
+    SaleNotFound = 116,
+    SaleAlreadyCancelled = 117,
+
+    PaymentNotFound = 118
+
 
     #endregion
 }
