@@ -25,6 +25,31 @@ jobs:
       - name: Publish
         run: dotnet publish DotNetApiTemplate/SupermarketERP.csproj -c Release -o ./publish
 
+      - name: Test Somee FTP directory access
+        shell: pwsh
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_PATH: ${{ secrets.FTP_PATH }}
+        run: |
+          $ftpRoot = "ftp://$($env:FTP_SERVER)/$($env:FTP_PATH.Trim('/'))/"
+          $credentials = "$($env:FTP_USERNAME):$($env:FTP_PASSWORD)"
+
+          Write-Host "Testing FTP directory listing..."
+          curl.exe --fail --show-error --user $credentials --list-only $ftpRoot
+          if ($LASTEXITCODE -ne 0) { throw "FTP directory listing failed" }
+
+          Write-Host "Testing FTP folder creation..."
+          curl.exe --fail --show-error --user $credentials --quote "MKD github-actions-test" $ftpRoot
+          if ($LASTEXITCODE -ne 0) { throw "FTP folder creation failed" }
+
+          Write-Host "Testing FTP folder removal..."
+          curl.exe --fail --show-error --user $credentials --quote "RMD github-actions-test" $ftpRoot
+          if ($LASTEXITCODE -ne 0) { throw "FTP folder removal failed" }
+
+          Write-Host "FTP tests passed."
+
       - name: Deploy to Somee
         uses: SamKirkland/FTP-Deploy-Action@v4.3.6
         with:
