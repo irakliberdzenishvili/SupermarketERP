@@ -14,7 +14,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup .NET 10
+      - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
@@ -23,26 +23,7 @@ jobs:
         run: dotnet restore DotNetApiTemplate/SupermarketERP.csproj
 
       - name: Publish
-        run: dotnet publish DotNetApiTemplate/SupermarketERP.csproj -c Release -o ./publish --no-restore
-
-      - name: Create offline file
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force -Path ./offline
-          Set-Content -Path ./offline/app_offline.htm -Value '<html><body>Application is updating.</body></html>' -Encoding ASCII
-
-      - name: Stop application
-        shell: pwsh
-        env:
-          FTP_SERVER: ${{ secrets.FTP_SERVER }}
-          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          FTP_PATH: ${{ secrets.FTP_PATH }}
-        run: |
-          $ftpRoot = "ftp://$($env:FTP_SERVER)$($env:FTP_PATH.TrimEnd('/'))/"
-          curl.exe --fail --show-error --ftp-create-dirs --user "$($env:FTP_USERNAME):$($env:FTP_PASSWORD)" --upload-file "./offline/app_offline.htm" "${ftpRoot}app_offline.htm"
-          if ($LASTEXITCODE -ne 0) { throw "Failed to upload app_offline.htm" }
-          Start-Sleep -Seconds 10
+        run: dotnet publish DotNetApiTemplate/SupermarketERP.csproj -c Release -o ./publish
 
       - name: Deploy to Somee
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -54,16 +35,3 @@ jobs:
           local-dir: ./publish/
           server-dir: ${{ secrets.FTP_PATH }}/
           dangerous-clean-slate: false
-
-      - name: Restart application
-        if: always()
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftp
-          local-dir: ./publish/
-          server-dir: ${{ secrets.FTP_PATH }}/
-          state-name: .ftp-deploy-restart-state.json
-
