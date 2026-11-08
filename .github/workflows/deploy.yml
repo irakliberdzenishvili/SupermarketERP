@@ -25,7 +25,26 @@ jobs:
       - name: Publish
         run: dotnet publish DotNetApiTemplate/SupermarketERP.csproj -c Release -o ./publish --no-restore
 
-      - name: Deploy to Somee via FTP
+      - name: Create offline file
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path ./offline
+          Set-Content -Path ./offline/app_offline.htm -Value '<html><body>Application is updating.</body></html>' -Encoding ASCII
+
+      - name: Stop application
+        shell: pwsh
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_PATH: ${{ secrets.FTP_PATH }}
+        run: |
+          $ftpRoot = "ftp://$($env:FTP_SERVER)$($env:FTP_PATH.TrimEnd('/'))/"
+          curl.exe --fail --show-error --ftp-create-dirs --user "$($env:FTP_USERNAME):$($env:FTP_PASSWORD)" --upload-file "./offline/app_offline.htm" "${ftpRoot}app_offline.htm"
+          if ($LASTEXITCODE -ne 0) { throw "Failed to upload app_offline.htm" }
+          Start-Sleep -Seconds 10
+
+      - name: Deploy to Somee
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
@@ -34,4 +53,16 @@ jobs:
           protocol: ftp
           local-dir: ./publish/
           server-dir: ${{ secrets.FTP_PATH }}/
-          dangerous-clean-slate: true
+          dangerous-clean-slate: false
+
+      - name: Restart application
+        if: always()
+        shell: pwsh
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          FTP_PATH: ${{ secrets.FTP_PATH }}
+        run: |
+          $ftpRoot = "ftp://$($env:FTP_SERVER)$($env:FTP_PATH.TrimEnd('/'))/"
+          curl.exe --silent --show-error --user "$($env:FTP_USERNAME):$($env:FTP_PASSWORD)" --quote "DELE app_offline.htm" $ftpRoot
