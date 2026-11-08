@@ -124,7 +124,7 @@ namespace SupermarketERP.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RefreshTokens");
+                    b.ToTable("RefreshTokens", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -316,7 +316,7 @@ namespace SupermarketERP.Migrations
 
                     b.HasIndex("WarehouseId");
 
-                    b.ToTable("Branches");
+                    b.ToTable("Branches", (string)null);
                 });
 
             modelBuilder.Entity("SupermarketERP.Models.Data.BranchManager", b =>
@@ -349,7 +349,7 @@ namespace SupermarketERP.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("BranchManagers");
+                    b.ToTable("BranchManagers", (string)null);
                 });
 
             modelBuilder.Entity("SupermarketERP.Models.Data.BranchWorker", b =>
@@ -404,7 +404,7 @@ namespace SupermarketERP.Migrations
                         .IsUnique()
                         .HasFilter("[UserId1] IS NOT NULL");
 
-                    b.ToTable("BranchWorkers");
+                    b.ToTable("BranchWorkers", (string)null);
                 });
 
             modelBuilder.Entity("SupermarketERP.Models.Data.Inventory", b =>
@@ -447,7 +447,7 @@ namespace SupermarketERP.Migrations
                         .IsUnique()
                         .HasFilter("[WarehouseId] IS NOT NULL");
 
-                    b.ToTable("Inventories");
+                    b.ToTable("Inventories", (string)null);
                 });
 
             modelBuilder.Entity("SupermarketERP.Models.Data.InventoryAdjustment", b =>
@@ -478,7 +478,7 @@ namespace SupermarketERP.Migrations
 
                     b.HasIndex("InventoryId");
 
-                    b.ToTable("InventoryAdjustments");
+                    b.ToTable("InventoryAdjustments", (string)null);
                 });
 
             modelBuilder.Entity("SupermarketERP.Models.Data.Payment", b =>
@@ -512,7 +512,7 @@ namespace SupermarketERP.Migrations
 
                     b.HasIndex("SaleId");
 
-                    b.ToTable("Payments");
+                    b.ToTable("Payments", (string)null);
                 });
 
             modelBuilder.Entity("SupermarketERP.Models.Data.Product", b =>
@@ -574,7 +574,7 @@ namespace SupermarketERP.Migrations
                     b.HasIndex("SKU")
                         .IsUnique();
 
-                    b.ToTable("Products");
+                    b.ToTable("Products", (string)null);
                 });
 
             modelBuilder.Entity("SupermarketERP.Models.Data.Sale", b =>
@@ -624,7 +624,7 @@ namespace SupermarketERP.Migrations
                     b.HasIndex("SaleNumber")
                         .IsUnique();
 
-                    b.ToTable("Sales");
+                    b.ToTable("Sales", (string)null);
                 });
 
             modelBuilder.Entity("SupermarketERP.Models.Data.SaleItem", b =>
@@ -661,7 +661,7 @@ namespace SupermarketERP.Migrations
                     b.HasIndex("SaleId", "ProductId")
                         .IsUnique();
 
-                    b.ToTable("SaleItems");
+                    b.ToTable("SaleItems", (string)null);
                 });
 
             modelBuilder.Entity("SupermarketERP.Models.Data.StockTransfer", b =>
@@ -730,7 +730,7 @@ namespace SupermarketERP.Migrations
 
                     b.HasIndex("ToBranchId");
 
-                    b.ToTable("StockTransfers");
+                    b.ToTable("StockTransfers", (string)null);
                 });
 
             modelBuilder.Entity("SupermarketERP.Models.Data.Warehouse", b =>
@@ -791,7 +791,7 @@ namespace SupermarketERP.Migrations
                     b.HasIndex("Code")
                         .IsUnique();
 
-                    b.ToTable("Warehouses");
+                    b.ToTable("Warehouses", (string)null);
                 });
 
             modelBuilder.Entity("SupermarketERP.Models.Data.WarehouseManager", b =>
@@ -821,7 +821,7 @@ namespace SupermarketERP.Migrations
                     b.HasIndex("WarehouseId")
                         .IsUnique();
 
-                    b.ToTable("WarehouseManagers");
+                    b.ToTable("WarehouseManagers", (string)null);
                 });
 
             modelBuilder.Entity("SupermarketERP.Models.Data.WarehouseWorker", b =>
@@ -869,7 +869,7 @@ namespace SupermarketERP.Migrations
 
                     b.HasIndex("WarehouseId");
 
-                    b.ToTable("WarehouseWorkers");
+                    b.ToTable("WarehouseWorkers", (string)null);
                 });
 
             modelBuilder.Entity("DotNetApiTemplate.Models.RefreshToken", b =>
