@@ -57,12 +57,13 @@ jobs:
 
       - name: Restart application
         if: always()
-        shell: pwsh
-        env:
-          FTP_SERVER: ${{ secrets.FTP_SERVER }}
-          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-          FTP_PATH: ${{ secrets.FTP_PATH }}
-        run: |
-          $ftpRoot = "ftp://$($env:FTP_SERVER)$($env:FTP_PATH.TrimEnd('/'))/"
-          curl.exe --silent --show-error --user "$($env:FTP_USERNAME):$($env:FTP_PASSWORD)" --quote "DELE app_offline.htm" $ftpRoot
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftp
+          local-dir: ./publish/
+          server-dir: ${{ secrets.FTP_PATH }}/
+          state-name: .ftp-deploy-restart-state.json
+
